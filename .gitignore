@@ -1,0 +1,5 @@
+/node_modules
+/stripe*
+.env
+
+yarn.lock

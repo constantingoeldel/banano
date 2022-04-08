@@ -1,0 +1,19 @@
+{
+  "name": "banano",
+  "version": "0.0.1",
+  "description": "A banano to fiat exchange",
+  "main": "server.js",
+  "license": "MIT",
+  "dependencies": {
+    "@bananocoin/bananojs": "^2.5.6",
+    "@stripe/stripe-js": "^1.25.0",
+    "axios": "^0.26.1",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "stripe": "^8.210.0"
+  },
+  "scripts": {
+    "start": "nodemon server.js --ignore orders.json ",
+    "test": "TEST=true yarn start"
+  }
+}
