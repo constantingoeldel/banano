@@ -9,7 +9,7 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
   <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
-  <script src="https://www.google.com/recaptcha/api.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <script src="https://js.stripe.com/v3/"></script>
 </head>
 
@@ -49,45 +49,40 @@
           rest.</p>
 
         <p>This is an early prototype, so thank you for your trust and if there are any issues, you can write me on
-          Discord: Consti#9536 </p>
-        <p class="total">So far, BAN have been purchased by customers.</p>
-        <p class="rate">The current rate is: </p>
+          Discord: Consti#9536. <a href="/video.html">Check this video to see how it works</a> </p>
+        <p class="own">I am selling my own BAN, this is not an exchange.</p>
+        <p class="total">So far, BAN have been purchased by people.</p>
+        <b class="rate">The current rate is: </b>
 
 
       </div>
     </div>
-    <form id="checkout-form" action="/create-checkout-session" method="POST">
-      <label for="address">What address should we send your BAN to?</label>
+    <form action="/create-checkout-session" method="POST">
+      <label for="address">What address should I send your BAN to?</label>
       <input style="width: 70%;" type="text" id="address" placeholder="ban_1224...." required name="address"
         pattern="ban_.{60}" />
       <label for="amount">Enter your desired amount of BAN</label>
       <input type="number" id="amount" placeholder="1000" min="100" required name="amount" max="10000" />
       <p class="price">The current price is: 0€ </p>
-      <button class="g-recaptcha" data-sitekey="reCAPTCHA_site_key" data-callback='onSubmit'
-        style="background: #fbdd11;" data-action='submit'>Checkout</button>
+      <div class="g-recaptcha" data-sitekey="6Lc80lofAAAAAPHm6vZA4AcKTuikKCfLYkSe7Ajc"></div>
 
+      <button type="submit" style="background: #fbdd11;" id="checkout-button">Checkout</button>
     </form>
+    <a href="/test.html">I want to try it out first</a>
   </section>
   <script>
-    const token = "6LcbzlofAAAAADL6W0J2HEnqlEDFaLEvO3UGchS9"
     let exRate = 0
     fetch('/status').then(res => res.json()).then(
       ({ total, customers, rate, max }) => {
         exRate = rate
-        document.querySelector('.total').textContent = "So far, " + total + " BAN have been purchased by " + customers + " customers."
-        document.querySelector('.rate').textContent = "The current rate is: " + rate + " EUR/BAN"
+        document.querySelector('.total').textContent = "So far, " + total + " BAN have been purchased by " + customers + " people." + " There are currently " + max + " BAN in my wallet."
+        document.querySelector('.rate').textContent = "The current rate is: " + rate.toFixed(4) + " EUR/BAN"
         document.querySelector('#amount').max = max
       }
     )
     document.querySelector('#amount').addEventListener('input', (event) => {
-      document.querySelector('.price').textContent = "The current price is: " + (exRate * event.target.value * 1.05).toFixed(2) + "€"
+      document.querySelector('.price').textContent = "The current price is: " + (exRate * event.target.value).toFixed(2) + "€ + 0.25€ Stripe fees"
     })
-
-    function onSubmit(token) {
-      document.getElementById("checkout-form").submit()
-    }
-
-
   </script>
 </body>
 

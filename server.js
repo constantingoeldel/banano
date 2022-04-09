@@ -5,7 +5,6 @@ const run = async () => {
     const bananojs = require('@bananocoin/bananojs')
     const axios = require('axios')
     const stripeJs = require('stripe')
-    stripe = TEST ? stripeJs(process.env.STRIPE_TEST_SECRET) : stripeJs(process.env.STRIPE_SECRET)
     const express = require('express')
     const app = express()
     app.use(express.static('public'))
@@ -31,12 +30,8 @@ const run = async () => {
     app.get('/status', async (req, res) => {
         console.log("New visitor")
         try {
-            await bananojs.getAccountsPending([account], 10)
-            await bananojs.receiveBananoDepositsForSeed(process.env.SEED, 0, process.env.REPRESENTATIVE)
-            const accountInfo = await bananojs.getAccountInfo(account)
-            const balance = Math.floor(accountInfo.balance_decimal)
-            const banano = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=eur')
-            const exchangeRate = banano.data.banano.eur
+            const balance = await getBalance(bananojs, account)
+            const exchangeRate = await getRate()
             const data = JSON.parse(fs.readFileSync("orders.json"))
             const customers = data.filter(order => order.status === "successful")
             const total = customers.reduce((sum, order) => sum + order.price, 0)
@@ -51,13 +46,25 @@ const run = async () => {
 
 
     app.post('/create-checkout-session', async (req, res) => {
-        await bananojs.getAccountsPending([account], 10)
-        await bananojs.receiveBananoDepositsForSeed(process.env.SEED, 0, process.env.REPRESENTATIVE)
-        const accountInfo = await bananojs.getAccountInfo(account)
+        console.log("Received new checkout request")
         try {
+            if (req.body['g-recaptcha-response'] === undefined || req.body['g-recaptcha-response'] === '' || req.body['g-recaptcha-response'] === null) {
+                console.log("Not captcha header, aborting")
+                return res.json({ "responseError": "captcha error" })
+            }
+            const verificationURL = "https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.CAPTCHA + "&response=" + req.body['g-recaptcha-response']
+            const approval = await axios.post(verificationURL)
+            if (!approval.data.success) {
+                console.log("Invalid captcha header, aborting", approval.data.success, approval.data["error-codes"])
+                return res.json({ "responseError": "captcha error" })
+            }
+            console.log("Request is valid")
+
             const amount = Number(req.body.amount)
+            const test = req.body.test || false
+            test && console.log("Test payment requested")
             const address = req.body.address
-            const balance = Math.floor(accountInfo.balance_decimal)
+            const balance = await getBalance(bananojs, account)
             if (!amount || amount < 100 || amount > balance) {
                 res.status(400).json({ status: "invalid amount entered. ", min_amount: 100, max_amount: balance, your_amount: amount }).end()
                 return
@@ -67,17 +74,13 @@ const run = async () => {
                 return
             }
 
-            const banano = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=eur')
-            const exchangeRate = banano.data.banano.eur
-            const price = Math.ceil(((amount * exchangeRate * 1.05) * 100))
+
+            const exchangeRate = await getRate()
+            const price = Math.ceil(amount * exchangeRate * 100) + 25
+            stripe = test ? stripeJs(process.env.STRIPE_TEST_SECRET) : stripeJs(process.env.STRIPE_SECRET)
             const session = await stripe.checkout.sessions.create({
                 line_items: [
-                    //     price: TEST ? process.env.TEST_PRODUCT : process.env.PRODUCT, quantity: Math.round(amount / 100), adjustable_quantity: {
-                    //         enabled: true,
-                    //         minimum: 1,
-                    //         maximum: 100
-                    //     },
-                    // },
+
                     {
                         price_data: {
                             currency: 'eur',
@@ -91,10 +94,7 @@ const run = async () => {
 
                         quantity: 1,
                     },
-                    // {
-                    //     price: "price_1KgZl7C8LRlUDDCkErb7HMR5",
-                    //     quantity: amount
-                    // }
+
                 ],
                 mode: 'payment',
                 allow_promotion_codes: true,
@@ -103,7 +103,7 @@ const run = async () => {
             })
             const paymentIntent = session.payment_intent
 
-            addOrder(paymentIntent, address, amount, price)
+            addOrder(paymentIntent, address, amount, price, !!test)
             console.log("Payment intent registered")
 
             res.redirect(303, session.url)
@@ -113,88 +113,69 @@ const run = async () => {
             res.redirect(500, "/")
         }
     })
-
-    app.post('/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
+    app.post('/test/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
+        const stripe = stripeJs(process.env.STRIPE_TEST_SECRET)
         const sig = request.headers['stripe-signature']
         let event
+        const webhookSecret = process.env.TEST_ENDPOINT
         try {
-            event = stripe.webhooks.constructEvent(request.body, sig, process.env.ENDPOINT)
+            event = stripe.webhooks.constructEvent(request.body, sig, webhookSecret)
         } catch (err) {
-            console.log(err.message)
+            console.log(err.message, sig, webhookSecret)
             response.status(400).send(`Webhook Error: ${err.message}`)
             return
         }
         console.log('handling the webhook')
 
         // Handle the event
-        switch (event.type) {
-            case 'payment_intent.succeeded':
-                try {
-                    const paymentIntent = event.data.object
-                    console.log(paymentIntent)
-                    const findOrderAddressAndAmountByPaymentIntent = (pi) => {
-                        let data = JSON.parse(fs.readFileSync("orders.json"))
-                        const order = data.find(order => order.paymentIntent == pi)
-                        return order ? { address: order.address, amount: order.amount } : null
-                    }
-                    const updateStatus = (pi) => {
-                        let data = JSON.parse(fs.readFileSync("orders.json"))
-                        const updated = data.map(order => {
-                            if (order.paymentIntent == pi) {
-                                order.status = 'successful'
-                            }
-                            return order
-                        })
-                        fs.writeFile("orders.json", JSON.stringify(updated, null, 2), (err) => {
-                            if (err) throw err
-                            console.log("Updated Status")
-                        })
-
-
-                    }
-                    const { address, amount } = findOrderAddressAndAmountByPaymentIntent(paymentIntent.id)
-                    console.log('Successfully payed! Now sending ' + amount + " bananos to " + address)
-
-                    address && amount && sendBanano(amount, address)
-                    updateStatus(paymentIntent.id)
-
-
-                    console.log("Order fulfilled")
-                } catch (err) {
-                    console.log(err)
-                }
-                break
-            case 'payment_method.attached':
-                const paymentMethod = event.data.object
-                console.log('PaymentMethod was attached to a Customer!')
-                break
-            // ... handle other event types
-            default:
-                console.log(`Unhandled event type ${event.type}`)
-        }
+        handleWebhook(event, fs, sendBanano)
 
         // Return a 200 response to acknowledge receipt of the event
         response.json({ received: true })
     })
 
+    app.post('/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
+        const stripe = stripeJs(process.env.STRIPE_SECRET)
+        const sig = request.headers['stripe-signature']
+        let event
+        const webhookSecret = process.env.ENDPOINT
+        try {
+            event = stripe.webhooks.constructEvent(request.body, sig, webhookSecret)
+        } catch (err) {
+            console.log(err.message, sig, webhookSecret)
+            response.status(400).send(`Webhook Error: ${err.message}`)
+            return
+        }
+        console.log('handling the webhook')
 
-    app.listen(4242, () => console.log('Running on port 4242'))
+        // Handle the event
+        handleWebhook(event, fs, sendBanano)
 
-    function addOrder(paymentIntent, address, amount, price) {
-        // Requiring fs module
+        // Return a 200 response to acknowledge receipt of the event
+        response.json({ received: true })
+    })
 
+    const port = TEST ? 4243 : 4242
+    app.listen(port, () => console.log('Running on port ' + port))
 
-        // Storing the JSON format data in myObject
+    async function getRate() {
+        const banano = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=eur')
+        const exchangeRate = banano.data.banano.eur * process.env.MARGIN
+
+        return exchangeRate
+    }
+
+    function addOrder(paymentIntent, address, amount, price, test) {
         let data = JSON.parse(fs.readFileSync("orders.json"))
 
-        // Defining new data to be added
         const order = {
             timestamp: Date.now(),
             address,
             paymentIntent,
-            amount,
+            amount: test ? 0.01 : amount,
             price,
-            status: "open"
+            status: "open",
+            test
         }
 
         // Adding the new data to our object
@@ -211,4 +192,67 @@ const run = async () => {
     }
 
 }
-run()
+
+try {
+    run()
+}
+catch (err) {
+    console.error(err)
+
+}
+function handleWebhook(event, fs, sendBanano) {
+    switch (event.type) {
+        case 'payment_intent.succeeded':
+            try {
+                const paymentIntent = event.data.object
+                const findOrderAddressAndAmountByPaymentIntent = (pi) => {
+                    let data = JSON.parse(fs.readFileSync("orders.json"))
+                    const order = data.find(order => order.paymentIntent == pi)
+                    return order ? { address: order.address, amount: order.amount } : null
+                }
+                const updateStatus = (pi) => {
+                    let data = JSON.parse(fs.readFileSync("orders.json"))
+                    const updated = data.map(order => {
+                        if (order.paymentIntent == pi) {
+                            order.status = 'successful'
+                        }
+                        return order
+                    })
+                    fs.writeFile("orders.json", JSON.stringify(updated, null, 2), (err) => {
+                        if (err)
+                            throw err
+                        console.log("Updated Status")
+                    })
+
+
+                }
+                const { address, amount } = findOrderAddressAndAmountByPaymentIntent(paymentIntent.id)
+                console.log('Successfully payed! Now sending ' + amount + " bananos to " + address)
+
+                address && amount && sendBanano(amount, address)
+                updateStatus(paymentIntent.id)
+
+
+                console.log("Order fulfilled")
+            } catch (err) {
+                console.log(err)
+            }
+            break
+        case 'payment_method.attached':
+            const paymentMethod = event.data.object
+            console.log('PaymentMethod was attached to a Customer!')
+            break
+        // ... handle other event types
+        default:
+            console.log(`Unhandled event type ${event.type}`)
+    }
+}
+
+async function getBalance(bananojs, account) {
+    await bananojs.getAccountsPending([account], 10)
+    await bananojs.receiveBananoDepositsForSeed(process.env.SEED, 0, process.env.REPRESENTATIVE)
+    const accountInfo = await bananojs.getAccountInfo(account)
+    const balance = Math.floor(accountInfo.balance_decimal)
+    return balance
+}
+
