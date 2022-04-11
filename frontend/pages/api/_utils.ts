@@ -83,11 +83,13 @@ async function addOrder(
     status: "open",
     test,
   };
-  collection.insertOne(order);
+  const { insertedId } = (await collection.insertOne(order)) as { insertedId: string };
+  return insertedId;
 }
 
 function sendMail(message: string) {
   const sgMail = require("@sendgrid/mail");
+  const TEST = !!process.env.TEST!;
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   const msg = {
     to: "constantingoeldel@gmail.com", // Change to your recipient
@@ -95,14 +97,15 @@ function sendMail(message: string) {
     subject: "Message from the banano server",
     text: message,
   };
-  sgMail
-    .send(msg)
-    .then(() => {
-      console.log("Email sent");
-    })
-    .catch((error: unknown) => {
-      console.error(error);
-    });
+  TEST ||
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log("Email sent");
+      })
+      .catch((error: unknown) => {
+        console.error(error);
+      });
 }
 
 export { getBalance, getRate, addOrder, sendBanano, getOrders, sendMail, getOrder, updateStatus };

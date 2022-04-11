@@ -17,30 +17,31 @@ const URL = "https://banano.acctive.digital";
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
   console.log("Received new checkout request");
   try {
-    if (
-      req.body["g-recaptcha-response"] === undefined ||
-      req.body["g-recaptcha-response"] === "" ||
-      req.body["g-recaptcha-response"] === null
-    ) {
-      console.log("Not captcha header, aborting");
-      return res.json({ status: 401, message: "captcha missing" });
-    }
-    const verificationURL =
-      "https://www.google.com/recaptcha/api/siteverify?secret=" +
-      process.env.CAPTCHA +
-      "&response=" +
-      req.body["g-recaptcha-response"];
-    const approval = await axios.post(verificationURL);
-    if (!approval.data.success) {
-      console.log(
-        "Invalid captcha header, aborting",
-        approval.data.success,
-        approval.data["error-codes"]
-      );
-      return res.json({ status: 401, message: "captcha error" });
+    if (!process.env.TEST || req.headers.authorization !== "Bearer " + process.env.BEARER_TOKEN!) {
+      if (
+        req.body["g-recaptcha-response"] === undefined ||
+        req.body["g-recaptcha-response"] === "" ||
+        req.body["g-recaptcha-response"] === null
+      ) {
+        console.log("Not captcha header, aborting");
+        return res.json({ status: 401, message: "captcha missing" });
+      }
+      const verificationURL =
+        "https://www.google.com/recaptcha/api/siteverify?secret=" +
+        process.env.CAPTCHA +
+        "&response=" +
+        req.body["g-recaptcha-response"];
+      const approval = await axios.post(verificationURL);
+      if (!approval.data.success) {
+        console.log(
+          "Invalid captcha header, aborting",
+          approval.data.success,
+          approval.data["error-codes"]
+        );
+        return res.json({ status: 401, message: "captcha error" });
+      }
     }
     console.log("Request is valid");
-
     const amount = Number(req.body.amount);
     const test = req.body.test || false;
     test && console.log("Test payment requested");
@@ -89,10 +90,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
     const paymentIntent = session.payment_intent as string;
 
-    addOrder(paymentIntent, address, amount, price, !!test);
-    console.log("Payment intent registered: ", paymentIntent);
-
     res.redirect(303, session.url!);
+    const id = await addOrder(paymentIntent, address, amount, price, !!test);
+    console.log("Payment intent registered: ", paymentIntent, "saved as order: " + id);
   } catch (error) {
     console.log(error);
     res.redirect(500, "/");

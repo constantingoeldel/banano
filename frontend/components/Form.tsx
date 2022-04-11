@@ -53,7 +53,7 @@ export default function Form({ test = false, price, updatePrice, max }: Props) {
         onChange={() => setIsCaptchaCompleted(true)}
       />
       <button
-        disabled={!isCaptchaCompleted}
+        disabled={!process.env.TEST && !isCaptchaCompleted}
         type="submit"
         className="bg-[#fbdd11]"
         id="checkout-button"
