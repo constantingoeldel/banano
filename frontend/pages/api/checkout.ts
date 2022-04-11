@@ -90,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const paymentIntent = session.payment_intent as string;
 
     addOrder(paymentIntent, address, amount, price, !!test);
-    console.log("Payment intent registered");
+    console.log("Payment intent registered: ", paymentIntent);
 
     res.redirect(303, session.url!);
   } catch (error) {
