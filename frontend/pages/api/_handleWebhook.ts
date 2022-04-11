@@ -16,7 +16,7 @@ export default async function handleWebhook(event: stripeJs.Event) {
           }
           return order
             ? { address: order.address, amount: order.amount }
-            : { address: process.env.SERVER_ADDR!, amount: 0 };
+            : { address: process.env.ADDRESS!, amount: 0 };
         };
 
         // @ts-expect-error

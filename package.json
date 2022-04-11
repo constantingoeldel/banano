@@ -7,9 +7,11 @@
   "dependencies": {
     "@bananocoin/bananojs": "^2.5.6",
     "@stripe/stripe-js": "^1.25.0",
+    "@types/micro": "^7.3.7",
     "axios": "^0.26.1",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
+    "micro": "^9.3.4",
     "stripe": "^8.210.0"
   },
   "scripts": {
