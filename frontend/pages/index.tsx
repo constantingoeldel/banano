@@ -56,7 +56,7 @@ export default function Home({ rate, total, customers, max }: Props) {
           <p className="total">
             So far, {total} BAN have been purchased by {customers} people.
           </p>
-          <b className="rate">The current rate is: {rate} BAN/EUR </b>
+          <b className="rate">The current rate is: {rate.toFixed(2)} BAN/EUR </b>
         </div>
       </div>
       <Form updatePrice={updatePrice} price={price} max={max} />

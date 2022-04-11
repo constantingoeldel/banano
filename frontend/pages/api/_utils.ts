@@ -40,13 +40,29 @@ async function getRate() {
   return exchangeRate;
 }
 
-async function getOrders(): Promise<Order[]> {
+async function getDBCollection() {
   const { MongoClient } = require("mongodb");
   const client = new MongoClient(process.env.MONGODB_URI!);
   await client.connect();
   const collection = client.db("Banano").collection("orders");
+  return collection;
+}
+
+async function getOrders(): Promise<Order[]> {
+  const collection = await getDBCollection();
   const orders = (await collection.find({}).toArray()) as Order[];
   return orders;
+}
+
+async function getOrder(pi: string) {
+  const collection = await getDBCollection();
+  const order = (await collection.findOne({ paymentIntent: pi })) as Order;
+  return order;
+}
+
+async function updateStatus(pi: string, status: string) {
+  const collection = await getDBCollection();
+  collection.updateOne({ paymentIntent: pi }, { $set: { status } });
 }
 
 async function addOrder(
@@ -56,10 +72,7 @@ async function addOrder(
   price: number,
   test: boolean
 ) {
-  const { MongoClient } = require("mongodb");
-  const client = new MongoClient(process.env.MONGODB_URI!);
-  await client.connect();
-  const collection = client.db("Banano").collection("orders");
+  const collection = await getDBCollection();
 
   const order = {
     timestamp: Date.now(),
@@ -73,4 +86,23 @@ async function addOrder(
   collection.insertOne(order);
 }
 
-export { getBalance, getRate, addOrder, sendBanano, getOrders };
+function sendMail(message: string) {
+  const sgMail = require("@sendgrid/mail");
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const msg = {
+    to: "constantingoeldel@gmail.com", // Change to your recipient
+    from: "transform@acctive.digital", // Change to your verified sender
+    subject: "Message from the banano server",
+    text: message,
+  };
+  sgMail
+    .send(msg)
+    .then(() => {
+      console.log("Email sent");
+    })
+    .catch((error: unknown) => {
+      console.error(error);
+    });
+}
+
+export { getBalance, getRate, addOrder, sendBanano, getOrders, sendMail, getOrder, updateStatus };
