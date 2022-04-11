@@ -17,7 +17,7 @@ const URL = "https://banano.acctive.digital";
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
   console.log("Received new checkout request");
   try {
-    if (!process.env.TEST || req.headers.authorization !== "Bearer " + process.env.BEARER_TOKEN!) {
+    if (!(!process.env.TEST || req.headers.authorization !== "Bearer " + process.env.BEARER_TOKEN!)) {
       if (
         req.body["g-recaptcha-response"] === undefined ||
         req.body["g-recaptcha-response"] === "" ||
