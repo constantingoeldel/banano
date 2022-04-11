@@ -1,17 +1,22 @@
-import type { NextPage } from "next";
-import Image from "next/image";
+import { NextApiRequest, NextApiResponse } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import Form from "../components/Form";
 import Layout from "../components/Layout";
 import { status } from "./api/status";
 
-export async function getServerSideProps() {
+export async function getServerSideProps({
+  req,
+  res,
+}: {
+  req: NextApiRequest;
+  res: NextApiResponse;
+}) {
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=86400");
+
   const props = await status();
   return {
-    props: {
-      ...props,
-    },
+    props,
   };
 }
 interface Props {

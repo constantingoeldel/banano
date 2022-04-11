@@ -11,12 +11,13 @@ type Data = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  console.log("New visitor");
   const data = await status();
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=86400");
   res.json(data);
 }
 
 export async function status(): Promise<Data> {
+  console.log("Rebuilding the status cache");
   try {
     const balance = await getBalance();
     const exchangeRate = await getRate();
