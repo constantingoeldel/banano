@@ -1,12 +1,15 @@
 import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
-type Props =
-  | { test: true; price?: never; updatePrice?: never; max?: never }
-  | { test?: false; price: number; updatePrice: Function; max: number };
 
-export default function Form({ test = false, price, updatePrice, max }: Props) {
+
+type Props =
+  | { test: true; price?: never; updatePrice?: never; max?: never, TEST_MODE: boolean }
+  | { test?: false; price: number; updatePrice: Function; max: number, TEST_MODE: boolean  };
+
+export default function Form({ test = false, price, updatePrice, max, TEST_MODE }: Props) {
   const [isCaptchaCompleted, setIsCaptchaCompleted] = useState(false);
+  
 
   return (
     <form className="mt-5" action="/api/checkout" method="POST">
@@ -41,7 +44,7 @@ export default function Form({ test = false, price, updatePrice, max }: Props) {
             name="test"
             defaultChecked
             required
-          />{" "}
+          />
         </>
       )}
       <p className="price">
@@ -53,7 +56,7 @@ export default function Form({ test = false, price, updatePrice, max }: Props) {
         onChange={() => setIsCaptchaCompleted(true)}
       />
       <button
-        disabled={!isCaptchaCompleted}
+        disabled={!(!!TEST_MODE || isCaptchaCompleted)}
         type="submit"
         className="bg-[#fbdd11]"
         id="checkout-button"

@@ -1,7 +1,8 @@
 import banano from "@bananocoin/bananojs";
 import axios from "axios";
-import { readFileSync, writeFileSync } from "fs";
 import { Order } from "./_types";
+import { InsertOneResult, MongoClient, WithId } from "mongodb";
+let client = new MongoClient(process.env.MONGODB_URI!);
 
 banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
 
@@ -10,6 +11,9 @@ const publicKey = await banano.getPublicKey(privateKey);
 const account = banano.getBananoAccount(publicKey);
 
 const MARGIN = Number(process.env.MARGIN!);
+
+client = await client.connect();
+const collection = client.db("Banano").collection("orders");
 
 async function sendBanano(amount: number, recipient: string) {
   const rawAmount = banano.getRawStrFromBananoStr(String(amount));
@@ -40,28 +44,21 @@ async function getRate() {
   return exchangeRate;
 }
 
-async function getDBCollection() {
-  const { MongoClient } = require("mongodb");
-  const client = new MongoClient(process.env.MONGODB_URI!);
-  await client.connect();
-  const collection = client.db("Banano").collection("orders");
-  return collection;
-}
+
+ 
+
 
 async function getOrders(): Promise<Order[]> {
-  const collection = await getDBCollection();
-  const orders = (await collection.find({}).toArray()) as Order[];
+  const orders = await collection.find({}).toArray() as WithId<Order>[];
   return orders;
 }
 
 async function getOrder(pi: string) {
-  const collection = await getDBCollection();
-  const order = (await collection.findOne({ paymentIntent: pi })) as Order;
+  const order = (await collection.findOne({ paymentIntent: pi })) as WithId<Order>;
   return order;
 }
 
 async function updateStatus(pi: string, status: string) {
-  const collection = await getDBCollection();
   collection.updateOne({ paymentIntent: pi }, { $set: { status } });
 }
 
@@ -72,7 +69,6 @@ async function addOrder(
   price: number,
   test: boolean
 ) {
-  const collection = await getDBCollection();
 
   const order = {
     timestamp: Date.now(),
@@ -83,11 +79,13 @@ async function addOrder(
     status: "open",
     test,
   };
-  collection.insertOne(order);
+  const { insertedId } = (await collection.insertOne(order)) as InsertOneResult<Order>;
+  return insertedId;
 }
 
 function sendMail(message: string) {
   const sgMail = require("@sendgrid/mail");
+  const TEST = !!process.env.TEST!;
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   const msg = {
     to: "constantingoeldel@gmail.com", // Change to your recipient
@@ -95,14 +93,15 @@ function sendMail(message: string) {
     subject: "Message from the banano server",
     text: message,
   };
-  sgMail
-    .send(msg)
-    .then(() => {
-      console.log("Email sent");
-    })
-    .catch((error: unknown) => {
-      console.error(error);
-    });
+  TEST ||
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log("Email sent");
+      })
+      .catch((error: unknown) => {
+        console.error(error);
+      });
 }
 
 export { getBalance, getRate, addOrder, sendBanano, getOrders, sendMail, getOrder, updateStatus };
