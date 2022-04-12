@@ -36,3 +36,5 @@ yarn-error.log*
 *.tsbuildinfo
 /.next
 yarn-*.lock
+/cypress/screenshots
+/cypress/videos

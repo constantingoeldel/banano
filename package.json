@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "cypress open",
-    "ci": "cypress run --browser chrome"
+    "ci": "cypress run"
   },
   "dependencies": {
     "@bananocoin/bananojs": "^2.5.9",

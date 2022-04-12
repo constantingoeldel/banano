@@ -1,5 +1,7 @@
 import banano from "@bananocoin/bananojs";
 
+banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
+
 export async function sendBanano(amount: number, recipient: string) {
   const rawAmount = banano.getRawStrFromBananoStr(String(amount));
   banano.sendAmountToBananoAccount(
