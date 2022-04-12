@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
 
+
 // Welcome to Cypress!
 //
 // This spec file contains a variety of sample tests
@@ -54,81 +55,43 @@ describe("Banano", () => {
 });
 
 describe.only("Test payment", () => {
-  context("With valid data", () => {
-  let url = ""
   it("Can fill out the form", () => {
     cy.visit("localhost:3000/test");
-    cy.contains('address').click().type("ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3")
-    cy.contains('desired amount').click().type("100")
+    cy.contains("address")
+      .click()
+      .type("ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3");
+    cy.contains("desired amount").click().type("100");
 
-    cy.get('#checkout-button').click()
+    cy.get("#checkout-button").click();
 
     cy.url().should("contains", "https://checkout.stripe.com/pay/");
-    cy.location().then(loc => {
-      console.log(loc)
-      url = loc.href;
-    })
-
-    // cy.visit("localhost:3000/test");
-    // cy.request({
-    //   method: "POST",
-    //   url: "http://localhost:3000/api/checkout",
-    //   followRedirect: false,
-    //   body: {
-    //     test: true,
-    //     address:
-    //       "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
-    //     amount: "100",
-    //   },
-    // }).then((resp) => {
-    //   expect(resp.status).to.eq(303);
-    //   expect(resp.redirectedToUrl).to.contain(
-    //     "https://checkout.stripe.com/pay/cs_test_"
-    //   );
-    //   url = resp.redirectedToUrl;
-
-      // cy.get("#email", { timeout: 20000 }).type("SatoshiNakamoto@email.com");
-      // cy.get("#cardNumber").type("4242424242424242");
-      // cy.get("#cardCvc").type("123");
-      // cy.get("#cardExpiry").type(
-      //   "12" + (new Date().getFullYear() + 10).toString().substr(-2)
-      // );
-      // cy.get("#billingName").type("Satoshi Nakamoto");
-
-      // cy.wait(1000);
-      // cy.get(".SubmitButton").should(($div) => {
-      //   expect($div.text()).to.include("Zahlen");
-      // });
-      // cy.get(".SubmitButton").click();
-      // cy.get(".SubmitButton").should(($div) => {
-      //   expect($div.text()).to.include("Processing");
-      // });
-    // });
-    
+    cy.url().then((url) => {
+      cy.task("setHref", url);
+    });
   });
 
   it("Pays", () => {
-    debugger
-    
-    cy.visit(url);
-    cy.url().should("contains", "https://checkout.stripe.com/pay/");
+    cy.task("getHref").then((href) => {
+      cy.visit(href);
+      cy.url().should("contains", "https://checkout.stripe.com/pay/");
+      cy.wait(5000)
 
-    cy.get("#email").type("SatoshiNakamoto@email.com");
-    cy.get("#cardNumber").type("4242424242424242");
-    cy.get("#cardCvc").type("123");
-    cy.get("#cardExpiry").type(
-      "12" + (new Date().getFullYear() + 10).toString().substr(-2)
-    );
-    cy.get("#billingName").type("Satoshi Nakamoto");
+      cy.get("#email").type("SatoshiNakamoto@email.com");
+      cy.get("#cardNumber").type("4242424242424242");
+      cy.get("#cardCvc").type("123");
+      cy.get("#cardExpiry").type(
+        "12" + (new Date().getFullYear() + 10).toString().substr(-2)
+      );
+      cy.get("#billingName").type("Satoshi Nakamoto");
 
-    cy.wait(1000);
-    cy.get(".SubmitButton").should(($div) => {
-      expect($div.text()).to.include("Zahlen");
-    });
-    cy.get(".SubmitButton").click();
-    cy.get(".SubmitButton").should(($div) => {
-      expect($div.text()).to.include("Processing");
+      cy.wait(1000);
+      cy.get(".SubmitButton").should(($div) => {
+        expect($div.text()).to.include("Zahlen");
+      });
+      cy.get(".SubmitButton").click();
+      cy.get(".SubmitButton").should(($div) => {
+        expect($div.text()).to.include("verarbeitet");
+      });
     });
   });
-})
 });

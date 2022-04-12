@@ -1,7 +1,6 @@
-import { getOrder, sendBanano, sendMail, updateStatus } from "./_utils";
-import { NextApiRequest } from "next";
+import { getOrder,  sendMail, updateStatus } from "./_utils";
 import stripeJs from "stripe";
-import { buffer } from "micro";
+import { sendBanano } from "./_banano";
 
 export default async function handleWebhook(event: stripeJs.Event) {
   switch (event.type) {
@@ -43,12 +42,10 @@ export default async function handleWebhook(event: stripeJs.Event) {
   }
 }
 
-export async function constructEvent(req: NextApiRequest, test: boolean): Promise<stripeJs.Event> {
+export async function constructEvent(buf: Buffer, sig: string, test: boolean): Promise<stripeJs.Event> {
   const stripe = new stripeJs(test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!, {
     apiVersion: "2020-08-27",
   });
-  const sig = req.headers["stripe-signature"] as string;
-  const buf = await buffer(req);
   let event;
   const webhookSecret = process.env.TEST
     ? process.env.LOCAL_ENDPOINT!

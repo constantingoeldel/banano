@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getBalance, getOrders, getRate } from "./_utils";
+import { getBalance } from "./_banano";
+import {  getOrders, getRate } from "./_utils";
 
 type Data = {
   total: number;

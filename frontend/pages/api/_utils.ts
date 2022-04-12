@@ -1,39 +1,13 @@
-import banano from "@bananocoin/bananojs";
 import axios from "axios";
-import { Order } from "./_types";
 import { InsertOneResult, MongoClient, WithId } from "mongodb";
+import { Order } from "./_types";
 let client = new MongoClient(process.env.MONGODB_URI!);
-
-banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
-
-const privateKey = banano.getPrivateKey(process.env.SEED, 0);
-const publicKey = await banano.getPublicKey(privateKey);
-const account = banano.getBananoAccount(publicKey);
+// rerwerit banano sending
 
 const MARGIN = Number(process.env.MARGIN!);
 
 client = await client.connect();
 const collection = client.db("Banano").collection("orders");
-
-async function sendBanano(amount: number, recipient: string) {
-  const rawAmount = banano.getRawStrFromBananoStr(String(amount));
-  banano.sendAmountToBananoAccount(
-    process.env.SEED,
-    0,
-    recipient,
-    rawAmount,
-    (hash: string) => console.log(hash),
-    (error: any) => console.log(error)
-  );
-}
-
-async function getBalance() {
-  await banano.getAccountsPending([account], 10);
-  await banano.receiveBananoDepositsForSeed(process.env.SEED, 0, process.env.REPRESENTATIVE);
-  const accountInfo = await banano.getAccountInfo(account);
-  const balance = Math.floor(accountInfo.balance_decimal);
-  return balance;
-}
 
 async function getRate() {
   const banano = await axios.get(
@@ -44,17 +18,15 @@ async function getRate() {
   return exchangeRate;
 }
 
-
- 
-
-
 async function getOrders(): Promise<Order[]> {
-  const orders = await collection.find({}).toArray() as WithId<Order>[];
+  const orders = (await collection.find({}).toArray()) as WithId<Order>[];
   return orders;
 }
 
 async function getOrder(pi: string) {
-  const order = (await collection.findOne({ paymentIntent: pi })) as WithId<Order>;
+  const order = (await collection.findOne({
+    paymentIntent: pi,
+  })) as WithId<Order>;
   return order;
 }
 
@@ -69,7 +41,6 @@ async function addOrder(
   price: number,
   test: boolean
 ) {
-
   const order = {
     timestamp: Date.now(),
     address,
@@ -79,7 +50,9 @@ async function addOrder(
     status: "open",
     test,
   };
-  const { insertedId } = (await collection.insertOne(order)) as InsertOneResult<Order>;
+  const { insertedId } = (await collection.insertOne(
+    order
+  )) as InsertOneResult<Order>;
   return insertedId;
 }
 
@@ -104,4 +77,4 @@ function sendMail(message: string) {
       });
 }
 
-export { getBalance, getRate, addOrder, sendBanano, getOrders, sendMail, getOrder, updateStatus };
+export { getRate, addOrder, getOrders, sendMail, getOrder, updateStatus };
