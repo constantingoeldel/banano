@@ -1,17 +1,22 @@
 import banano from "@bananocoin/bananojs";
 
-banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
 
-export async function sendBanano(amount: number, recipient: string) {
+export async function sendBanano(amount: number, recipient: string): Promise<String> {
+  return new Promise((resolve, reject) => {
+  banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
   const rawAmount = banano.getRawStrFromBananoStr(String(amount));
   banano.sendAmountToBananoAccount(
     process.env.SEED,
     0,
     recipient,
     rawAmount,
-    (hash: string) => console.log("Transaction hash:", hash),
-    (error: any) => console.log(error)
+    (hash: string) => { 
+      console.log("Transaction hash:", hash),
+      resolve(hash);
+    },
+    (error: any) => reject(error)
   );
+  });
 }
 
 export async function getBalance() {
