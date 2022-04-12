@@ -73,8 +73,6 @@ describe.only("Test payment", () => {
   it("Pays", () => {
     cy.task("getHref").then((href) => {
       cy.visit(href);
-      cy.url().should("contains", "https://checkout.stripe.com/pay/");
-      cy.wait(5000)
 
       cy.get("#email").type("SatoshiNakamoto@email.com");
       cy.get("#cardNumber").type("4242424242424242");
