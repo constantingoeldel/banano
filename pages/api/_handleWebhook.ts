@@ -5,7 +5,6 @@ import { sendBanano } from "./_banano";
 export default async function handleWebhook(event: stripeJs.Event) {
   switch (event.type) {
     case "payment_intent.succeeded":
-      console.log(event);
       try {
         const paymentIntent = event.data.object;
         const findOrderAddressAndAmountByPaymentIntent = async (pi: string) => {
@@ -52,6 +51,10 @@ export async function constructEvent(buf: Buffer, sig: string, test: boolean): P
     : test
     ? process.env.TEST_ENDPOINT!
     : process.env.ENDPOINT!;
+  try {
   event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+  } catch {
+    event = stripe.webhooks.constructEvent(buf, sig, process.env.STAGING_ENDPOINT!);
+  }
   return event;
 }

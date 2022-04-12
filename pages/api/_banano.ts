@@ -7,7 +7,7 @@ export async function sendBanano(amount: number, recipient: string) {
     0,
     recipient,
     rawAmount,
-    (hash: string) => console.log(hash),
+    (hash: string) => console.log("Transaction hash:", hash),
     (error: any) => console.log(error)
   );
 }
