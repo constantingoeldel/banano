@@ -1,21 +1,40 @@
 {
-  "name": "banano",
-  "version": "0.0.1",
-  "description": "A banano to fiat exchange",
-  "main": "server.js",
-  "license": "MIT",
-  "dependencies": {
-    "@bananocoin/bananojs": "^2.5.6",
-    "@stripe/stripe-js": "^1.25.0",
-    "@types/micro": "^7.3.7",
-    "axios": "^0.26.1",
-    "dotenv": "^16.0.0",
-    "express": "^4.17.3",
-    "micro": "^9.3.4",
-    "stripe": "^8.210.0"
-  },
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "start": "nodemon server.js --ignore orders.json ",
-    "test": "TEST=true yarn start"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "cypress open",
+    "ci": "cypress run"
+  },
+  "dependencies": {
+    "@bananocoin/bananojs": "^2.5.9",
+    "@sendgrid/mail": "^7.6.2",
+    "@stripe/stripe-js": "^1.27.0",
+    "@types/micro": "^7.3.7",
+    "@types/react-google-recaptcha": "^2.1.5",
+    "axios": "^0.26.1",
+    "micro": "^9.3.4",
+    "mongodb": "^4.5.0",
+    "next": "12.1.4",
+    "react": "18.0.0",
+    "react-dom": "18.0.0",
+    "react-google-recaptcha": "^2.1.0",
+    "stripe": "^8.216.0"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.23",
+    "@types/react": "18.0.1",
+    "@types/react-dom": "18.0.0",
+    "autoprefixer": "^10.4.4",
+    "cypress": "^9.5.3",
+    "eslint": "8.13.0",
+    "eslint-config-next": "12.1.4",
+    "postcss": "^8.4.12",
+    "tailwindcss": "^3.0.23",
+    "typescript": "4.6.3"
   }
 }
