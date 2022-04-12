@@ -2,7 +2,16 @@ import Link from "next/link";
 import Form from "../components/Form";
 import Layout from "../components/Layout";
 
-export default function Test() {
+export async function getServerSideProps() {
+  
+    return {
+      props: {
+        TEST_MODE : !!process.env.TEST,
+      }
+    }
+}
+
+export default function Test({TEST_MODE}: {TEST_MODE: boolean}) {
   return (
     <Layout>
       <h1>Test buying Banano with fiat</h1>
@@ -24,7 +33,7 @@ export default function Test() {
       <br />
       <p>Then you will get 0.1 BAN sent to your wallet</p>
 
-      <Form test={true} />
+      <Form test={true} TEST_MODE={TEST_MODE} />
     </Layout>
   );
 }

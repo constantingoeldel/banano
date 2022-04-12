@@ -1,6 +1,7 @@
 module.exports = {
   webpack: (config) => {
-    config.experiments = { topLevelAwait: true, layers: true }
+    config.experiments.topLevelAwait = true,
+    config.experiments.layers =  true 
     return config
   },
 }

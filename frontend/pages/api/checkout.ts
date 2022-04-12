@@ -90,11 +90,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
     const paymentIntent = session.payment_intent as string;
 
-    res.redirect(303, session.url!);
     const id = await addOrder(paymentIntent, address, amount, price, !!test);
     console.log("Payment intent registered: ", paymentIntent, "saved as order: " + id);
+    res.redirect(303, session.url!);
   } catch (error) {
     console.log(error);
-    res.redirect(500, "/");
+    res.json({ status: 500, message: "Something went wrong, please try again later" });
   }
 }
