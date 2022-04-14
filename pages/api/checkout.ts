@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { addOrder,  getRate } from "./_utils";
+import { addOrder, getRate } from "./_utils";
 import stripeJs from "stripe";
 import axios from "axios";
 import { getBalance } from "./_banano";
@@ -17,10 +17,12 @@ const URL = "https://banano.acctive.digital";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
   console.log("Received new checkout request");
-  const authByBearer = !!req.headers.authorization && req.headers.authorization !== "Bearer " + process.env.BEARER_TOKEN!
+  const authByBearer =
+    !!req.headers.authorization &&
+    req.headers.authorization !== "Bearer " + process.env.BEARER_TOKEN!;
   authByBearer && console.log("Auth by bearer token");
   try {
-    if (!(!!process.env.TEST || authByBearer)) {
+    if (!(!!process.env.DEV || authByBearer)) {
       if (
         req.body["g-recaptcha-response"] === undefined ||
         req.body["g-recaptcha-response"] === "" ||
@@ -95,7 +97,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const id = await addOrder(paymentIntent, address, amount, price, !!test);
     console.log("Payment intent registered: ", paymentIntent, "saved as order: " + id);
-    authByBearer ? res.json({status: 200, message: session.url!}) : res.redirect(303, session.url!);
+    authByBearer
+      ? res.json({ status: 200, message: session.url! })
+      : res.redirect(303, session.url!);
   } catch (error) {
     console.log(error);
     res.json({ status: 500, message: "Something went wrong, please try again later" });

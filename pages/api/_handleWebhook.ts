@@ -21,7 +21,7 @@ export default async function handleWebhook(event: stripeJs.Event) {
         );
 
         await updateStatus(paymentId, "succeeded");
-        sendMail(
+        const mail = await sendMail(
           "Successfully payed! Now sending " +
             order.amount +
             " bananos to " +
@@ -29,10 +29,12 @@ export default async function handleWebhook(event: stripeJs.Event) {
             " with hash " +
             hash
         );
-        console.log("Order fulfilled");
+        console.log("Order fulfilled", mail);
         return 200;
       } catch (err) {
-        sendMail(
+        // @ts-expect-error
+        event?.data?.object?.id && updateStatus(event.data.object.id, "failed");
+        const mail = await sendMail(
           "An error occured while fulfilling an order:" +
             err +
             "\n" +
@@ -40,8 +42,7 @@ export default async function handleWebhook(event: stripeJs.Event) {
             JSON.stringify(event.data.object)
         );
         console.log(err);
-        // @ts-expect-error
-        updateStatus(event.data.object.id, "failed");
+        console.log("Order failed", mail);
         return 500;
       }
       break;
@@ -60,15 +61,20 @@ export async function constructEvent(
     apiVersion: "2020-08-27",
   });
   let event;
-  const webhookSecret = process.env.TEST
-    ? process.env.LOCAL_ENDPOINT!
-    : test
-    ? process.env.TEST_ENDPOINT!
-    : process.env.ENDPOINT!;
+  const DEV_MODE = process.env.DEV;
+  const local = process.env.LOCAL_ENDPOINT!;
+  const test_payment = process.env.TEST_ENDPOINT!;
+  const normal_payment = process.env.ENDPOINT!;
+  const staging = process.env.STAGING_ENDPOINT!;
+  const webhookSecret = DEV_MODE ? local : test ? test_payment : normal_payment;
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch {
-    event = stripe.webhooks.constructEvent(buf, sig, process.env.STAGING_ENDPOINT!);
+    try {
+      event = stripe.webhooks.constructEvent(buf, sig, staging);
+    } catch {
+      throw new Error("Could not construct event");
+    }
   }
   return event;
 }

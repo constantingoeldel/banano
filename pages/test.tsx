@@ -1,17 +1,35 @@
+import { NextApiRequest, NextApiResponse } from "next";
 import Link from "next/link";
 import Form from "../components/Form";
 import Layout from "../components/Layout";
+import { status } from "./api/status";
 
-export async function getServerSideProps() {
-  
-    return {
-      props: {
-        TEST_MODE : !!process.env.TEST,
-      }
-    }
+export async function getServerSideProps({
+  req,
+  res,
+}: {
+  req: NextApiRequest;
+  res: NextApiResponse;
+}) {
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=86400");
+
+  const props = await status();
+
+  return {
+    props: {
+      ...props,
+      DEV_MODE: !!process.env.DEV,
+    },
+  };
+}
+interface Props {
+  total: number;
+  max: number;
+  customers: number;
+  DEV_MODE: boolean;
 }
 
-export default function Test({TEST_MODE}: {TEST_MODE: boolean}) {
+export default function Test({ DEV_MODE, total, max, customers }: Props) {
   return (
     <Layout>
       <h1>Test buying Banano with fiat</h1>
@@ -31,9 +49,14 @@ export default function Test({TEST_MODE}: {TEST_MODE: boolean}) {
         Date: Any future date
       </p>
       <br />
+      <p className="total">
+        So far, {total} BAN have been purchased by {customers} people. {max} BAN are left in my
+        wallet
+      </p>
+      <br />
       <p>Then you will get 0.1 BAN sent to your wallet</p>
 
-      <Form test={true} TEST_MODE={TEST_MODE} />
+      <Form test={true} DEV_MODE={DEV_MODE} />
     </Layout>
   );
 }

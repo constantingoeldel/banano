@@ -15,12 +15,12 @@ export async function getServerSideProps({
   res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=86400");
 
   const props = await status();
-    
+
   return {
     props: {
       ...props,
-      TEST_MODE: !!process.env.TEST
-    }
+      DEV_MODE: !!process.env.DEV,
+    },
   };
 }
 interface Props {
@@ -28,10 +28,10 @@ interface Props {
   total: number;
   max: number;
   customers: number;
-  TEST_MODE: boolean;
+  DEV_MODE: boolean;
 }
 
-export default function Home({ rate, total, customers, max , TEST_MODE}: Props) {
+export default function Home({ rate, total, customers, max, DEV_MODE }: Props) {
   const [price, setPrice] = useState(0);
   function updatePrice(amount: string) {
     setPrice(Number(amount) * rate);
@@ -59,12 +59,13 @@ export default function Home({ rate, total, customers, max , TEST_MODE}: Props) 
           </p>
           <br />
           <p className="total">
-            So far, {total} BAN have been purchased by {customers} people.
+            So far, {total} BAN have been purchased by {customers} people. {max} BAN are left in my
+            wallet
           </p>
           <b className="rate">The current rate is: {rate.toFixed(4)} BAN/EUR </b>
         </div>
       </div>
-      <Form updatePrice={updatePrice} price={price} max={max} TEST_MODE={TEST_MODE} />
+      <Form updatePrice={updatePrice} price={price} max={max} DEV_MODE={DEV_MODE} />
       <Link href="/test">
         <a>I want to try it out first</a>
       </Link>
