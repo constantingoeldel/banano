@@ -19,6 +19,8 @@ export default async function handleWebhook(event: stripeJs.Event) {
             " with hash " +
             hash
         );
+
+        await updateStatus(paymentId, "succeeded");
         sendMail(
           "Successfully payed! Now sending " +
             order.amount +
@@ -27,12 +29,16 @@ export default async function handleWebhook(event: stripeJs.Event) {
             " with hash " +
             hash
         );
-
-        await updateStatus(paymentId, "succeeded");
         console.log("Order fulfilled");
         return 200;
       } catch (err) {
-        sendMail("An error occured while fulfilling an order:" + err);
+        sendMail(
+          "An error occured while fulfilling an order:" +
+            err +
+            "\n" +
+            "The request was: " +
+            JSON.stringify(event.data.object)
+        );
         console.log(err);
         // @ts-expect-error
         updateStatus(event.data.object.id, "failed");
@@ -50,12 +56,9 @@ export async function constructEvent(
   sig: string,
   test: boolean
 ): Promise<stripeJs.Event> {
-  const stripe = new stripeJs(
-    test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!,
-    {
-      apiVersion: "2020-08-27",
-    }
-  );
+  const stripe = new stripeJs(test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!, {
+    apiVersion: "2020-08-27",
+  });
   let event;
   const webhookSecret = process.env.TEST
     ? process.env.LOCAL_ENDPOINT!
@@ -65,11 +68,7 @@ export async function constructEvent(
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch {
-    event = stripe.webhooks.constructEvent(
-      buf,
-      sig,
-      process.env.STAGING_ENDPOINT!
-    );
+    event = stripe.webhooks.constructEvent(buf, sig, process.env.STAGING_ENDPOINT!);
   }
   return event;
 }

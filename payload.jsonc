@@ -1,0 +1,10 @@
+{
+  "id": "625357a122addf89ad3c1034", // Alpha_numeric unique identifier
+  "timestamp": 1648069383794, // Unix timestamp of the order time.
+  "address": "ban_abcdf3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
+  "amount": 100, // BAN amount the user ordered
+  "price": 201, // In € cents, the exact amount the user payed
+  "payout": 195, // In € cents, price minus the stripe fees (2% + 0,25€)
+  "fee": 1, // BAN amount for handling the order to be sent to my wallet
+  "test": "true" // optional parameter, if the order is a test order. In this case, you should not send any BAN ( or very small amounts)
+}

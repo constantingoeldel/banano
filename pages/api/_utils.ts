@@ -1,5 +1,6 @@
 import axios from "axios";
 import { InsertOneResult, MongoClient, WithId } from "mongodb";
+import { resolve } from "path";
 import { Order } from "./_types";
 let client = new MongoClient(process.env.MONGODB_URI!);
 // rerwerit banano sending
@@ -50,31 +51,32 @@ async function addOrder(
     status: "open",
     test,
   };
-  const { insertedId } = (await collection.insertOne(
-    order
-  )) as InsertOneResult<Order>;
+  const { insertedId } = (await collection.insertOne(order)) as InsertOneResult<Order>;
   return insertedId;
 }
 
 function sendMail(message: string) {
-  const sgMail = require("@sendgrid/mail");
-  const TEST = !!process.env.TEST!;
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  const msg = {
-    to: "constantingoeldel@gmail.com", // Change to your recipient
-    from: "transform@acctive.digital", // Change to your verified sender
-    subject: "Message from the banano server",
-    text: message,
-  };
-  TEST ||
+  return new Promise((resolve, reject) => {
+    const sgMail = require("@sendgrid/mail");
+    const TEST = !!process.env.TEST!;
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+      to: "constantingoeldel@gmail.com", // Change to your recipient
+      from: "server@banano.acctive.digital", // Change to your verified sender
+      subject: "Message from the banano server",
+      text: message,
+    };
+
     sgMail
       .send(msg)
       .then(() => {
-        console.log("Email sent");
+        resolve("Email sent");
       })
       .catch((error: unknown) => {
         console.error(error);
+        reject(error);
       });
+  });
 }
 
 export { getRate, addOrder, getOrders, sendMail, getOrder, updateStatus };
