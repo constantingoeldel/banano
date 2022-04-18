@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { addOrder, getRate } from "./_utils";
+import { getOffer } from "../../utils/offer";
+import { nanoid } from "nanoid";
 import stripeJs from "stripe";
 import axios from "axios";
-import { getBalance } from "./_banano";
+import { addOrder, getSource } from "../../utils/db";
+import { getRate } from "../../utils/banano";
 
 interface Redirect {
   url: string;
@@ -51,9 +53,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const test = req.body.test || false;
     test && console.log("Test payment requested");
     const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
-    const address = req.body.address;
-    const balance = await getBalance();
-    if (!amount || amount < 100 || amount > balance) {
+    const recipient_address = req.body.address;
+    const sourceId = req.body.source;
+    const marketRate = await getRate();
+    const source = await getSource(sourceId);
+    const offer = await getOffer(source, marketRate);
+    if (!amount || amount < 100 || amount > offer.balance) {
       res.json({
         status: 400,
         message: "Invalid amount entered",
@@ -61,13 +66,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       return;
     }
-    if (!address.match("ban_.{60}")) {
+    if (!recipient_address.match("ban_.{60}")) {
       res.json({ status: 400, message: "invalid address. Please provide a valid ban address" });
       return;
     }
-
-    const exchangeRate = await getRate();
-    const price = Math.ceil(amount * exchangeRate * 100) + 25;
+    if (!sourceId || typeof sourceId !== "string") {
+      res.json({ status: 400, message: "No source id provided" });
+      return;
+    }
+    if (!sourceId.includes("sid_")) {
+      res.json({ status: 400, message: "Invalid source id" });
+      return;
+    }
+    const price = Math.ceil(amount * offer.rate * 100) + 25;
+    const transferGroup = "tid_" + nanoid();
     const stripe = new stripeJs(stripeSecret, { apiVersion: "2020-08-27" });
 
     const session = await stripe.checkout.sessions.create({
@@ -88,14 +100,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           quantity: 1,
         },
       ],
+      payment_intent_data: {
+        transfer_group: transferGroup,
+        on_behalf_of: offer.source_id,
+      },
       mode: "payment",
       allow_promotion_codes: true,
       success_url: URL + "/",
       cancel_url: URL + "/",
     });
     const paymentIntent = session.payment_intent as string;
-
-    const id = await addOrder(paymentIntent, address, amount, price, !!test);
+    const id = await addOrder(
+      paymentIntent,
+      source,
+      offer,
+      transferGroup,
+      recipient_address,
+      amount,
+      price,
+      !!test
+    );
     console.log("Payment intent registered: ", paymentIntent, "saved as order: " + id);
     authByBearer
       ? res.json({ status: 200, message: session.url! })

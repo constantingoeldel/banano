@@ -1,0 +1,37 @@
+import { NextApiRequest, NextApiResponse } from "next";
+import Error from "next/error";
+import { OfferResponse } from "../../types";
+import { getBalance, getRate, sendBanano } from "../../utils/banano";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<OfferResponse | { hash: string } | string>
+) {
+  if (req.method === "GET") {
+    if (req.headers["authorization"] !== process.env.API_KEY) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+    const address = process.env.ADDRESS!;
+    const margin = 1.02;
+    const balance = await getBalance(address);
+    let rate = (await getRate()) * margin;
+    res.json({ balance, rate });
+  } else if (req.method === "POST") {
+    //@ts-ignore
+    const requestIsValid = ({ payment, amount, address }) => {
+      // implementation left up to the user
+      return true;
+    };
+    if (req.headers["authorization"] !== process.env.API_KEY) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+    if (!requestIsValid(req.body)) {
+      res.status(400).send("Invalid request");
+      return;
+    }
+    const hash = await sendBanano(req.body.amount, req.body.address, process.env.SEED!);
+    res.json({ hash });
+  }
+}

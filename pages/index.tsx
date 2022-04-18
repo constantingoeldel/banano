@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import Form from "../components/Form";
 import Layout from "../components/Layout";
+import { Status } from "../types";
 import { status } from "./api/status";
 
 export async function getServerSideProps({
@@ -23,18 +25,18 @@ export async function getServerSideProps({
     },
   };
 }
-interface Props {
-  rate: number;
-  total: number;
-  max: number;
-  customers: number;
-  DEV_MODE: boolean;
-}
 
-export default function Home({ rate, total, customers, max, DEV_MODE }: Props) {
+export default function Home({
+  offers,
+  total,
+  customers,
+  max,
+  DEV_MODE,
+}: Status & { DEV_MODE: boolean }) {
   const [price, setPrice] = useState(0);
+  const [source, setSource] = useState(0);
   function updatePrice(amount: string) {
-    setPrice(Number(amount) * rate);
+    setPrice(Number(amount) * offers[source].rate);
   }
 
   return (
@@ -62,7 +64,21 @@ export default function Home({ rate, total, customers, max, DEV_MODE }: Props) {
             So far, {total} BAN have been purchased by {customers} people. {max} BAN are left in my
             wallet
           </p>
-          <b className="rate">The current rate is: {rate.toFixed(4)} BAN/EUR </b>
+          {offers.map((source, index) => (
+            <button key={source.source_id} onClick={() => setSource(index)}>
+              {source.name} offers up to {source.balance} BAN for {source.rate} EUR/BAN
+            </button>
+          ))}
+          <b className="rate">
+            The current best rate is:{" "}
+            {offers
+              .reduce(
+                (lowest, source) => (source.rate < lowest ? source.rate : lowest),
+                offers[0].rate
+              )
+              .toFixed(4)}{" "}
+            BAN/EUR{" "}
+          </b>
         </div>
       </div>
       <Form updatePrice={updatePrice} price={price} max={max} DEV_MODE={DEV_MODE} />

@@ -2,7 +2,7 @@ import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 type Props =
-  | { test: true; price?: never; updatePrice?: never; max?: never; DEV_MODE: boolean }
+  | { test: true; price?: never; updatePrice?: never; max?: number; DEV_MODE: boolean }
   | { test?: false; price: number; updatePrice: Function; max: number; DEV_MODE: boolean };
 
 export default function Form({ test = false, price, updatePrice, max, DEV_MODE }: Props) {

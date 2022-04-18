@@ -56,7 +56,7 @@ export default function Test({ DEV_MODE, total, max, customers }: Props) {
       <br />
       <p>Then you will get 0.1 BAN sent to your wallet</p>
 
-      <Form test={true} DEV_MODE={DEV_MODE} />
+      <Form test={true} DEV_MODE={DEV_MODE} max={max} />
     </Layout>
   );
 }
