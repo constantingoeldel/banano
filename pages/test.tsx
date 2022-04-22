@@ -50,8 +50,7 @@ export default function Test({ DEV_MODE, total, max, customers }: Props) {
       </p>
       <br />
       <p className="total">
-        So far, {total} BAN have been purchased by {customers} people. {max} BAN are left in my
-        wallet
+        So far, {total} BAN have been purchased by {customers} people. {max} BAN are available.
       </p>
       <br />
       <p>Then you will get 0.1 BAN sent to your wallet</p>

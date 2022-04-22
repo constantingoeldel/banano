@@ -61,8 +61,7 @@ export default function Home({
           </p>
           <br />
           <p className="total">
-            So far, {total} BAN have been purchased by {customers} people. {max} BAN are left in my
-            wallet
+            So far, {total} BAN have been purchased by {customers} people. {max} BAN are available
           </p>
           {offers.map((source, index) => (
             <button key={source.source_id} onClick={() => setSource(index)}>

@@ -15,7 +15,8 @@ export type Status = {
 export interface User {
   id: string;
   address: string;
-  passwordHash: string;
+  confirmed: boolean;
+  sourceId?: string;
 }
 
 export interface Offer {
@@ -95,4 +96,13 @@ interface Block {
   source_account: number;
 }
 
+export interface Transaction {
+  type: string;
+  account: string;
+  amount: number;
+  local_timestamp: number;
+  height: number;
+  hash: string;
+  confirmed: boolean;
+}
 declare module "@bananocoin/bananojs";

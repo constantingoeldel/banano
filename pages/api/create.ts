@@ -1,4 +1,6 @@
-// @ts-nocheck
+// send custodials seed phrase
+// adjust margin
+
 import Stripe from "stripe";
 import { generateNewAccount } from "../../utils/banano";
 import { nanoid } from "nanoid";

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,26 +11,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Image src="/banano.svg" alt="Banano logo" height={50} width={400} />
           </div>
         </Link>
-        <LoginButtons />
+        {/* <LoginButtons /> */}
       </header>
       {children}
     </>
   );
 }
 
-function LoginButtons() {
-  const { data: session } = useSession();
-  if (session) {
-    return (
-      <>
-        <Link href={"/dashboard/" + session.user.id}>Dashboard</Link>
-        <button onClick={() => signOut()}>Sign out</button>
-      </>
-    );
-  }
-  return (
-    <>
-      <button onClick={() => signIn()}>Sign in</button>
-    </>
-  );
-}
+// function LoginButtons() {
+//   const { data: session } = useSession();
+//   if (session) {
+//     return (
+//       <>
+//         <Link href={"/dashboard/" + session.user.id}>Dashboard</Link>
+//         <button onClick={() => signOut()}>Sign out</button>
+//       </>
+//     );
+//   }
+//   return (
+//     <>
+//       <button onClick={() => signIn()}>Sign in</button>
+//     </>
+//   );
+// }

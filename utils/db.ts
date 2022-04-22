@@ -1,5 +1,6 @@
-import { MongoClient, WithId } from "mongodb";
+import { MongoClient, ObjectId, WithId } from "mongodb";
 import { CustodialSource, ManualSource, Offer, Order, User } from "../types";
+import { nanoid } from "nanoid";
 
 let client = new MongoClient(process.env.MONGODB_URI!);
 
@@ -10,6 +11,18 @@ export const users = client.db("Banano").collection<User>("users");
 
 export async function getUser(id: string) {
   return await users.findOne({ id });
+}
+export async function getUserByAddress(address: string) {
+  return await users.findOne({ address });
+}
+export async function confirmUser(id: string) {
+  return await users.updateOne({ id }, { $set: { confirmed: true } });
+}
+
+export async function createUser(address: string): Promise<User & { _id: ObjectId }> {
+  const user: User = { address, id: "uid_" + nanoid(), confirmed: false };
+  const insertion = await users.insertOne(user);
+  return { _id: insertion.insertedId, ...user };
 }
 
 export async function getOrders(): Promise<Order[]> {

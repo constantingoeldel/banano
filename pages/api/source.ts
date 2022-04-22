@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import Error from "next/error";
 import { OfferResponse } from "../../types";
 import { getBalance, getRate, sendBanano } from "../../utils/banano";
+import { getSource } from "../../utils/db";
 
 export default async function handler(
   req: NextApiRequest,
@@ -33,5 +33,28 @@ export default async function handler(
     }
     const hash = await sendBanano(req.body.amount, req.body.address, process.env.SEED!);
     res.json({ hash });
+  }
+}
+
+export async function getUserVisibleSource(id: string) {
+  const source = await getSource(id);
+  if (source.custodial) {
+    const balance = await getBalance(source.address);
+    return {
+      active: source.active,
+      name: source.name,
+      custodial: source.custodial,
+      address: source.address,
+      price: source.price,
+      balance,
+    };
+  } else {
+    return {
+      active: source.active,
+      name: source.name,
+      custodial: source.custodial,
+      webhook: source.webhook,
+      secret: source.secret,
+    };
   }
 }
