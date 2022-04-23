@@ -11,7 +11,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Image src="/banano.svg" alt="Banano logo" height={50} width={400} />
           </div>
         </Link>
-        {/* <LoginButtons /> */}
+        <div className="mt-5">
+          <Link href={"/dashboard"}>To my dashboard</Link>
+        </div>
       </header>
       {children}
     </>

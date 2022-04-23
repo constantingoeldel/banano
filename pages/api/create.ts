@@ -1,28 +1,35 @@
-// send custodials seed phrase
-// adjust margin
-
 import Stripe from "stripe";
 import { generateNewAccount } from "../../utils/banano";
 import { nanoid } from "nanoid";
 import { CustodialSource, ManualSource, Price, Source } from "../../types";
-import { addSource } from "../../utils/db";
+import { addSource, createUser } from "../../utils/db";
 import { NextApiRequest, NextApiResponse } from "next";
 import validator from "validator";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    if (validator.isEmail(req.query.email) && typeof req.query.name === "string") {
+    console.log();
+    if (
+      typeof req.query.email === "string" &&
+      validator.isEmail(req.query.email) &&
+      typeof req.query.name === "string"
+    ) {
       if (req.query.method === "custodial") {
-        if (validator.isNumeric(req.query.min) && validator.isNumeric(req.query.margin)) {
-          const redirectURL = await create(true, req.query.name, req.query.email, null, {
-            min: req.query.min,
-            margin: req.query.margin,
+        if (
+          typeof req.query.min === "string" &&
+          validator.isNumeric(req.query.min) &&
+          typeof req.query.margin === "string" &&
+          validator.isNumeric(req.query.margin)
+        ) {
+          const redirectURL = await create(true, req.query.name, req.query.email, undefined, {
+            min: Number(req.query.min),
+            margin: Number(req.query.margin),
             market: req.query.market === "on",
           });
           res.redirect(redirectURL);
           return;
         }
       } else if (req.query.method === "manual") {
-        if (req.query.webhook && validator.isURL(req.query.webhook)) {
+        if (typeof req.query.webhook === "string" && validator.isURL(req.query.webhook)) {
           const redirectURL = await create(
             false,
             req.query.name,
@@ -37,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).json({ error: "Invalid request" });
   } catch (e) {
     console.log(e);
-    res.status(400).json({ error: e.message });
+    res.status(400).json({ error: e });
   }
 }
 
@@ -50,16 +57,8 @@ async function create(
 ) {
   const stripe = new Stripe(process.env.STRIPE_TEST_SECRET!, { apiVersion: "2020-08-27" });
   const createAccount = async (source: CustodialSource | ManualSource) => {
-    const account = await stripe.accounts.create({
-      type: "express",
-      email: source.email,
-      business_type: "individual",
-      business_profile: {
-        url: "https://banano.acctive.digital/source/" + source.id.replace("sid_", ""),
-      },
-    });
-    source.account = account.id;
     await addSource(source);
+    source.custodial && (await createUser(source.address, source.id));
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: "https://banano.acctive.digital/create",
@@ -68,22 +67,31 @@ async function create(
     });
     return accountLink.url;
   };
+  const id = nanoid();
+  const account = await stripe.accounts.create({
+    type: "express",
+    email: email,
+    business_type: "individual",
+    business_profile: {
+      url: "https://banano.acctive.digital/source/" + id,
+    },
+  });
 
   const baseSource: Source = {
-    id: "sid_" + nanoid(),
+    id: "sid_" + id,
     secret: "secret_" + nanoid(),
     email,
     name,
+    account: account.id,
     active: false,
   };
   console.log("Adding new source with baseSource", baseSource);
+  console.log(price);
   if (
-    custodial &&
     price?.margin &&
     price?.margin > 0 &&
     price?.min &&
     price?.min > 0 &&
-    price?.market &&
     typeof price?.market === "boolean"
   ) {
     const { seed, address } = await generateNewAccount();
@@ -92,7 +100,11 @@ async function create(
       custodial: true,
       address,
       seed,
-      price,
+      price: {
+        min: price.min,
+        margin: price.margin / 100,
+        market: price.market,
+      },
     };
     console.log("Adding new custodial source", source);
     return await createAccount(source);

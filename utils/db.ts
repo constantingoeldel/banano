@@ -19,16 +19,20 @@ export async function confirmUser(id: string) {
   return await users.updateOne({ id }, { $set: { confirmed: true } });
 }
 
-export async function createUser(address: string): Promise<User & { _id: ObjectId }> {
-  const user: User = { address, id: "uid_" + nanoid(), confirmed: false };
+export async function createUser(
+  address: string,
+  sourceId?: string
+): Promise<User & { _id: ObjectId }> {
+  const user: User = { address, id: "uid_" + nanoid(), confirmed: false, sourceId };
   const insertion = await users.insertOne(user);
   return { _id: insertion.insertedId, ...user };
 }
 
 export async function getOrders(): Promise<Order[]> {
   const successfullOrders = (await orders
-    .find({ status: "successful", test: false })
+    .find({ $and: [{ status: "succeeded" }, { $or: [{ test: undefined }, { test: false }] }] })
     .toArray()) as WithId<Order>[];
+
   return successfullOrders;
 }
 
@@ -46,14 +50,20 @@ export async function getOrder(pi: string) {
   return order;
 }
 
-export async function getSource(sid: string) {
+export async function getSource(sid: string): Promise<CustodialSource | ManualSource | null> {
   const order = await sources.findOne({
-    sid: sid,
+    id: sid,
   });
-  if (!order) {
-    throw new Error("Source with source ID " + sid + " not found");
-  }
+
   return order;
+}
+
+export async function getSourceIdByAddress(address: string) {
+  const order = await sources.findOne({
+    address,
+  });
+
+  return order?.id;
 }
 
 export async function updateStatus(pi: string, status: Order["status"]) {

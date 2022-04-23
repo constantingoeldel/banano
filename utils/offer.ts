@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { CustodialSource, ManualSource, Offer, Order } from "../types";
-import { getBalance, getBalances, getRate } from "./banano";
+import { getBalance, getRate, receivePending } from "./banano";
 import { nanoid } from "nanoid";
 import { sources } from "./db";
 
@@ -13,15 +13,19 @@ export async function getOffer(
   source: CustodialSource | ManualSource,
   marketRate: number
 ): Promise<Offer> {
+  const marketRateInCt = marketRate * 100;
   let balance, rate;
   if (source.custodial) {
+    await receivePending(source.seed);
     balance = await getBalance(source.address);
+    console.log(marketRateInCt * source.price.margin, source.price.min);
     rate = source.price.market
-      ? marketRate * source.price.margin < source.price.min
-        ? source.price.min
-        : marketRate * source.price.margin
+      ? marketRateInCt * source.price.margin < source.price.min
+        ? source.price.min / 100
+        : (marketRateInCt * source.price.margin) / 100
       : source.price.min;
   } else {
+    console.log(source);
     const offer = await fetchOffer(source.webhook);
     balance = offer.balance;
     rate = offer.rate;
@@ -39,9 +43,8 @@ export async function getOffer(
 export async function getOffers() {
   try {
     const marketRate = await getRate();
-    const activeSources = await sources
-      .find({ active: true }, { projection: { id: 1, margin: 1, market_price: 1, min_price: 1 } })
-      .toArray();
+    console.log("Market rate", marketRate);
+    const activeSources = await sources.find({ active: true }).toArray();
     const offers = activeSources.map((source) => getOffer(source, marketRate));
     return await Promise.all(offers);
   } catch (err) {

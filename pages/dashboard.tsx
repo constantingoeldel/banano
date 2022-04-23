@@ -2,7 +2,7 @@ import Link from "next/link";
 import Layout from "../components/Layout";
 import { Price } from "../types";
 import { getBalance } from "../utils/banano";
-import { getSource, getUserOrders } from "../utils/db";
+import { getSourceIdByAddress, getUserOrders } from "../utils/db";
 import { withIronSessionSsr } from "iron-session/next";
 import { ironOptions } from "../utils/auth";
 import { NextPageContext } from "next";
@@ -14,8 +14,10 @@ export const getServerSideProps = withIronSessionSsr(
       return { redirect: { permanent: false, destination: "/login" } };
     }
     const user = req.session.user;
+    console.log(user);
     const orders = await getUserOrders(user.address);
-    let userVisibleSource = user.sourceId ? await getUserVisibleSource(user.sourceId) : null;
+    const sourceId = user.sourceId || (await getSourceIdByAddress(user.address));
+    let userVisibleSource = sourceId ? await getUserVisibleSource(sourceId) : null;
 
     return {
       props: {
@@ -86,9 +88,10 @@ export default function Dashboard({ address, total, purchases, source }: Dashboa
                   There are {source.balance} BAN in your account which you offer for at least{" "}
                   {source.price.min} EUR/BAN. Because you{" "}
                   {source.price.market
-                    ? `Follow the market, this price will be updated frequently and adjusted by your margin of ${
-                        source.price.margin - 100
-                      }%`
+                    ? `Follow the market, this price will be updated frequently and adjusted by your margin of ${(
+                        (source.price.margin - 1) *
+                        100
+                      ).toFixed(1)}%`
                     : "Don't follow the market, this price will always stay the same."}
                   . Send more BAN to this address if you want to top up.
                 </p>
@@ -106,7 +109,7 @@ export default function Dashboard({ address, total, purchases, source }: Dashboa
               <Link href="/source">Sign up here</Link>{" "}
             </p>
           )}
-          <br />
+
           <h2>Purchase history</h2>
           {purchases.map((purchase) => {
             <div key={purchase.id} className="bg-green-300 p-3 m-5 rounded">

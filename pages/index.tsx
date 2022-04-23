@@ -33,12 +33,6 @@ export default function Home({
   max,
   DEV_MODE,
 }: Status & { DEV_MODE: boolean }) {
-  const [price, setPrice] = useState(0);
-  const [source, setSource] = useState(0);
-  function updatePrice(amount: string) {
-    setPrice(Number(amount) * offers[source].rate);
-  }
-
   return (
     <Layout>
       <div className="product">
@@ -60,27 +54,9 @@ export default function Home({
             </Link>
           </p>
           <br />
-          <p className="total">
-            So far, {total} BAN have been purchased by {customers} people. {max} BAN are available
-          </p>
-          {offers.map((source, index) => (
-            <button key={source.source_id} onClick={() => setSource(index)}>
-              {source.name} offers up to {source.balance} BAN for {source.rate} EUR/BAN
-            </button>
-          ))}
-          <b className="rate">
-            The current best rate is:{" "}
-            {offers
-              .reduce(
-                (lowest, source) => (source.rate < lowest ? source.rate : lowest),
-                offers[0].rate
-              )
-              .toFixed(4)}{" "}
-            BAN/EUR{" "}
-          </b>
         </div>
       </div>
-      <Form updatePrice={updatePrice} price={price} max={max} DEV_MODE={DEV_MODE} />
+      <Form customers={customers} offers={offers} total={total} max={max} DEV_MODE={DEV_MODE} />
       <Link href="/test">
         <a>I want to try it out first</a>
       </Link>

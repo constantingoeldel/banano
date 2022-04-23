@@ -46,6 +46,10 @@ export async function getBalance(account: string) {
   return Math.floor(accountInfo.balance_decimal);
 }
 
+export async function receivePending(seed: string) {
+  await banano.receiveBananoDepositsForSeed(seed, 0, process.env.REPRESENTATIVE);
+}
+
 export async function getBalances(accounts: string[] = [process.env.ADDRESS!]) {
   await banano.getAccountsPending(accounts, accounts.length - 1);
   await banano.receiveBananoDepositsForSeed(process.env.SEED, 0, process.env.REPRESENTATIVE);
@@ -82,15 +86,9 @@ export async function confirmAccount(account: string): Promise<boolean> {
   const history: History = await banano.getAccountHistory(account, -1);
 
   const confirmingTX = history.history.find((tx: Transaction) => {
-    console.log(
-      tx.hash,
-      banano.getBananoPartsFromRaw(tx.amount).banoshi,
-      banano.getBananoPartsFromRaw(tx.amount).banano
-    );
-
     return (
-      tx.type === "send" &&
-      banano.getBananoPartsFromRaw(tx.amount).banano === 0.01 &&
+      Number(banano.getBananoPartsFromRaw(tx.amount).banoshi) === 1 &&
+      tx.local_timestamp - Date.now() < 1000 * 60 * 60 &&
       tx.account === process.env.ADDRESS
     );
   });

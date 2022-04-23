@@ -39,7 +39,7 @@ export default async function paymentSucceeded(event: stripeJs.Event) {
         order.transferGroup,
         order.test
       );
-      await updateStatus(paymentId, "successful");
+      await updateStatus(paymentId, "succeeded");
       const msg =
         "Successfully payed! Now sending " +
         order.amount +

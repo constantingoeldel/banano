@@ -1,4 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Status } from "../../types";
 import { getOrders } from "../../utils/db";
@@ -15,7 +14,8 @@ export async function status(): Promise<Status> {
   try {
     const customers = await getOrders();
     const offers = await getOffers();
-    const total = customers.reduce((sum, order) => sum + order.price, 0);
+    console.log(offers);
+    const total = customers.reduce((sum, order) => sum + order.amount, 0);
     const max = offers.reduce((sum, source) => sum + source.balance, 0);
     return {
       total,

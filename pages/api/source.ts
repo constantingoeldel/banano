@@ -37,7 +37,9 @@ export default async function handler(
 }
 
 export async function getUserVisibleSource(id: string) {
+  console.log(id);
   const source = await getSource(id);
+  if (!source) return null;
   if (source.custodial) {
     const balance = await getBalance(source.address);
     return {

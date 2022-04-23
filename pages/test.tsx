@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import Link from "next/link";
 import Form from "../components/Form";
 import Layout from "../components/Layout";
+import { Status } from "../types";
 import { status } from "./api/status";
 
 export async function getServerSideProps({
@@ -22,14 +23,14 @@ export async function getServerSideProps({
     },
   };
 }
-interface Props {
-  total: number;
-  max: number;
-  customers: number;
-  DEV_MODE: boolean;
-}
 
-export default function Test({ DEV_MODE, total, max, customers }: Props) {
+export default function Test({
+  offers,
+  total,
+  customers,
+  max,
+  DEV_MODE,
+}: Status & { DEV_MODE: boolean }) {
   return (
     <Layout>
       <h1>Test buying Banano with fiat</h1>
@@ -49,13 +50,17 @@ export default function Test({ DEV_MODE, total, max, customers }: Props) {
         Date: Any future date
       </p>
       <br />
-      <p className="total">
-        So far, {total} BAN have been purchased by {customers} people. {max} BAN are available.
-      </p>
-      <br />
+
       <p>Then you will get 0.1 BAN sent to your wallet</p>
 
-      <Form test={true} DEV_MODE={DEV_MODE} max={max} />
+      <Form
+        customers={customers}
+        offers={offers}
+        total={total}
+        max={max}
+        DEV_MODE={DEV_MODE}
+        test={true}
+      />
     </Layout>
   );
 }

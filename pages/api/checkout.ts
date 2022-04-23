@@ -55,17 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
     const recipient_address = req.body.address;
     const sourceId = req.body.source;
-    const marketRate = await getRate();
-    const source = await getSource(sourceId);
-    const offer = await getOffer(source, marketRate);
-    if (!amount || amount < 100 || amount > offer.balance) {
-      res.json({
-        status: 400,
-        message: "Invalid amount entered",
-      });
-
-      return;
-    }
     if (!recipient_address.match("ban_.{60}")) {
       res.json({ status: 400, message: "invalid address. Please provide a valid ban address" });
       return;
@@ -76,6 +65,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
     if (!sourceId.includes("sid_")) {
       res.json({ status: 400, message: "Invalid source id" });
+      return;
+    }
+    const marketRate = await getRate();
+    const source = await getSource(sourceId);
+    if (!source) {
+      res.json({ status: 400, message: "Source does not exist" });
+      return;
+    }
+    const offer = await getOffer(source, marketRate);
+    if (!amount || amount < 100 || amount > offer.balance) {
+      res.json({
+        status: 400,
+        message: "Invalid amount entered",
+      });
+
       return;
     }
     const price = Math.ceil(amount * offer.rate * 100) + 25;
@@ -102,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       ],
       payment_intent_data: {
         transfer_group: transferGroup,
-        on_behalf_of: offer.source_id,
+        // on_behalf_of: source?.account,
       },
       mode: "payment",
       allow_promotion_codes: true,
