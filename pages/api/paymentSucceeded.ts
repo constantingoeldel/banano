@@ -13,7 +13,7 @@ export default async function paymentSucceeded(event: stripeJs.Event) {
     const order = await getOrder(paymentId);
     let hash: string;
     if (order.source.custodial) {
-      hash = await sendBanano(order.amount, order.address, order.source.privateKey);
+      hash = await sendBanano(order.amount, order.address, order.source.seed);
       console.log(
         "Successfully payed! Now sending " +
           order.amount +

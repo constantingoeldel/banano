@@ -1,0 +1,38 @@
+import app from "express";
+import { getBalance, getRate, sendBanano } from "./utils/banano";
+
+const server = app();
+
+server.get("/", async (req, res) => {
+  if (req.headers["authorization"] !== process.env.API_KEY) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  const address = process.env.ADDRESS!;
+  const margin = 1.02;
+  const balance = await getBalance(address);
+  let rate = (await getRate()) * margin;
+  res.json({ balance, rate });
+});
+
+server.post("/", async (req, res) => {
+  //@ts-ignore
+  const requestIsValid = ({ payment, amount, address }) => {
+    // implementation left up to the user
+    return true;
+  };
+  if (req.headers["authorization"] !== process.env.API_KEY) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  if (!requestIsValid(req.body)) {
+    res.status(400).send("Invalid request");
+    return;
+  }
+  const hash = await sendBanano(req.body.amount, req.body.address, process.env.SEED!);
+  res.json({ hash });
+});
+
+server.listen(3003, () => {
+  console.log("Server listening on port 3003");
+});
