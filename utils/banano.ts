@@ -44,11 +44,7 @@ export async function verifyTransaction(hash: string, order: Order) {
       Math.floor(order.amount) &&
     Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi) ===
       Math.floor((Math.floor(order.amount) - order.amount) * 100);
-  console.log(
-    response.data,
-    Number(banano.getBananoPartsFromRaw(response.data.amount).banano),
-    Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi)
-  );
+
   return correct_recipient && correct_amount;
 }
 

@@ -89,7 +89,7 @@ async function postPayment(
   const result = order.transferId
     ? { id: order.transferId, amount: order.transferAmount }
     : await transfer(
-        price_after_fees,
+        Math.floor(price_after_fees),
         order.source.account,
         order.transferGroup,
         process.env.DEV_MODE == "true"
