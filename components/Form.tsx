@@ -34,7 +34,7 @@ type Props =
     };
 
 export default function Form({ test = false, offers, total, customers, max, DEV_MODE }: Props) {
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState(1);
   const [selectedSource, setSource] = useState(0);
   const [isCaptchaCompleted, setIsCaptchaCompleted] = useState(false);
   function updatePrice(amount: string) {
@@ -92,7 +92,6 @@ export default function Form({ test = false, offers, total, customers, max, DEV_
           max={max ? max : 100000}
         />
       </div>
-
       {test && (
         <>
           <label htmlFor="test">Test Mode: </label>
@@ -116,6 +115,7 @@ export default function Form({ test = false, offers, total, customers, max, DEV_
         sitekey="6Lc80lofAAAAAPHm6vZA4AcKTuikKCfLYkSe7Ajc"
         onChange={() => setIsCaptchaCompleted(true)}
       />
+
       <button
         disabled={!(!!DEV_MODE || isCaptchaCompleted)}
         type="submit"

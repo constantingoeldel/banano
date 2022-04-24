@@ -7,7 +7,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import validator from "validator";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    console.log();
+    console.log("Received request", req.query);
     if (
       typeof req.query.email === "string" &&
       validator.isEmail(req.query.email) &&
@@ -29,7 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return;
         }
       } else if (req.query.method === "manual") {
-        if (typeof req.query.webhook === "string" && validator.isURL(req.query.webhook)) {
+        console.log("Creating manual source");
+        if (
+          typeof req.query.webhook === "string" &&
+          validator.isURL(req.query.webhook, { require_tld: false })
+        ) {
           const redirectURL = await create(
             false,
             req.query.name,
@@ -55,14 +59,14 @@ async function create(
   webhook?: string,
   price?: Price
 ) {
-  const stripe = new Stripe(process.env.STRIPE_TEST_SECRET!, { apiVersion: "2020-08-27" });
+  const stripe = new Stripe(process.env.STRIPE_SECRET!, { apiVersion: "2020-08-27" });
   const createAccount = async (source: CustodialSource | ManualSource) => {
     await addSource(source);
     source.custodial && (await createUser(source.address, source.id));
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: "https://banano.acctive.digital/create",
-      return_url: "https://banano.acctive.digital/dashboard/" + source.id.replace("sid_", ""),
+      return_url: "https://banano.acctive.digital/dashboard/",
       type: "account_onboarding",
     });
     return accountLink.url;

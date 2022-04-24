@@ -7,24 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest && cypress open",
+    "test": "jest",
+    "cypress": "cypress open",
     "ci": "cypress run"
-  },
-  "jest": {
-    "extensionsToTreatAsEsm": [
-      ".ts"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.[jt]s?(x)",
-      "**/?(*.)+(specs|test).[jt]s?(x)"
-    ],
-    "globals": {
-      "ts-jest": {}
-    }
   },
   "dependencies": {
     "@bananocoin/bananojs": "^2.5.9",
@@ -32,6 +17,8 @@
     "@stripe/stripe-js": "^1.27.0",
     "@types/react-google-recaptcha": "^2.1.5",
     "axios": "^0.26.1",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
     "iron-session": "^6.1.2",
     "micro": "^9.3.4",
     "mongodb": "^4.5.0",
@@ -55,8 +42,11 @@
     "cypress": "^9.5.3",
     "eslint": "8.13.0",
     "eslint-config-next": "12.1.4",
+    "jest": "^27.5.1",
     "postcss": "^8.4.12",
     "tailwindcss": "^3.0.23",
+    "ts-jest": "^27.1.4",
+    "ts-node": "^10.7.0",
     "typescript": "4.6.3"
   }
 }

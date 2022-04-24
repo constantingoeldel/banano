@@ -105,4 +105,3 @@ export interface Transaction {
   hash: string;
   confirmed: boolean;
 }
-declare module "@bananocoin/bananojs";

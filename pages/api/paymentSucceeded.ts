@@ -23,21 +23,34 @@ export default async function paymentSucceeded(event: stripeJs.Event) {
           hash
       );
     } else {
-      const response: AxiosResponse<{ hash: string }> = await axios.post(order.source.webhook, {
-        amount: order.amount,
-        address: order.address,
-      });
+      const response: AxiosResponse<{ hash: string }> = await axios.post(
+        order.source.webhook,
+        {
+          amount: order.amount,
+          address: order.address,
+        },
+        { headers: { Authorization: order.source.secret } }
+      );
       hash = response.data.hash;
     }
 
     const valid = await verifyTransaction(hash, order);
-    const price_after_fees = order.price - 25 - order.price * 0.05;
+    const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
+
     if (valid) {
+      console.log(
+        "Transaction is valid and confirmed! Charging " +
+          (order.price - price_after_fees) +
+          " ct. for this order. " +
+          price_after_fees +
+          " will be payed out to source " +
+          order.source.id
+      );
       const result = await transfer(
         price_after_fees,
-        order.source.id,
+        order.source.account,
         order.transferGroup,
-        order.test
+        process.env.DEV_MODE == "true"
       );
       await updateStatus(paymentId, "succeeded");
       const msg =
@@ -62,6 +75,7 @@ export default async function paymentSucceeded(event: stripeJs.Event) {
     } else {
       await updateStatus(paymentId, "invalid hash");
       const msg = "Payment hash is invalid. Please contact banano@acctive.digital";
+      console.log(msg);
       await sendMail(msg);
       await sendMail(msg, order.source.email);
       return 500;

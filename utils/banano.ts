@@ -18,7 +18,7 @@ export async function getRate(): Promise<number> {
 export async function sendBanano(amount: number, recipient: string, seed: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const rawAmount = banano.getRawStrFromBananoStr(String(amount));
-    const balance = await getBalance(process.env.ADDRESS!);
+    // const balance = await getBalance(process.env.ADDRESS!);
     // balance - amount < 3000 &&
     //   sendMail("balance is low: current balance is " + (balance - amount) + " BAN");
     banano.sendAmountToBananoAccount(
@@ -35,9 +35,14 @@ export async function sendBanano(amount: number, recipient: string, seed: string
 }
 
 export async function verifyTransaction(hash: string, order: Order) {
-  const block: Block = await axios.get("https://api.creeper.banano.cc/v2/blocks/" + hash);
-  const correct_recipient = block.contents.link_as_account === order.address;
-  const correct_amount = banano.getBananoPartsFromRaw(block.amount).banano === order.amount;
+  console.log("Verifying transaction...");
+  const response = await axios.get<Block>("https://api.creeper.banano.cc/v2/blocks/" + hash);
+  const correct_recipient = response.data.contents.link_as_account === order.address;
+  const correct_amount =
+    Number(banano.getBananoPartsFromRaw(response.data.amount).banano) ===
+      Math.floor(order.amount) &&
+    Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi) ===
+      Math.floor(order.amount * 100);
   return correct_recipient && correct_amount;
 }
 

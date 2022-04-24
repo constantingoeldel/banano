@@ -12,6 +12,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </Link>
         <div className="mt-5">
+          {/* <Link href="/">Purchase BAN</Link>
+
+          <Link href="/test">Test payment</Link> */}
           <Link href={"/dashboard"}>To my dashboard</Link>
         </div>
       </header>

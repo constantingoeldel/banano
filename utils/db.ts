@@ -36,6 +36,14 @@ export async function getOrders(): Promise<Order[]> {
   return successfullOrders;
 }
 
+export async function getFailedOrders(): Promise<Order[]> {
+  const failedOrders = (await orders
+    .find({ $or: [{ status: "failed" }, { status: "invalid hash" }] })
+    .toArray()) as WithId<Order>[];
+
+  return failedOrders;
+}
+
 export async function getUserOrders(address: string) {
   return (await orders.find({ address: address }).toArray()) as WithId<Order>[];
 }

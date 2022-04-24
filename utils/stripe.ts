@@ -3,9 +3,9 @@ export async function transfer(
   amount: number,
   destination: string,
   transfer_group: string,
-  test: boolean
+  dev: boolean
 ) {
-  const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
+  const stripeSecret = dev ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
   const stripe = new stripeJs(stripeSecret, { apiVersion: "2020-08-27" });
   const transfer = await stripe.transfers.create({
     amount: amount,
