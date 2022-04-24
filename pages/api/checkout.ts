@@ -74,6 +74,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return;
     }
     const offer = await getOffer(source, marketRate);
+    if (!offer) {
+      res.json({ status: 400, message: "Offer does not exist" });
+      return;
+    }
     if (!amount || amount < 100 || amount > offer.balance) {
       res.json({
         status: 400,
