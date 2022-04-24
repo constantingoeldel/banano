@@ -70,6 +70,9 @@ export interface Order {
   source: CustodialSource | ManualSource;
   transferGroup: string;
   offer: Offer;
+  hash?: string;
+  transferId?: string;
+  transferAmount?: number;
 }
 
 interface Block {

@@ -37,12 +37,18 @@ export async function sendBanano(amount: number, recipient: string, seed: string
 export async function verifyTransaction(hash: string, order: Order) {
   console.log("Verifying transaction...");
   const response = await axios.get<Block>("https://api.creeper.banano.cc/v2/blocks/" + hash);
+
   const correct_recipient = response.data.contents.link_as_account === order.address;
   const correct_amount =
     Number(banano.getBananoPartsFromRaw(response.data.amount).banano) ===
       Math.floor(order.amount) &&
     Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi) ===
-      Math.floor(order.amount * 100);
+      Math.floor((Math.floor(order.amount) - order.amount) * 100);
+  console.log(
+    response.data,
+    Number(banano.getBananoPartsFromRaw(response.data.amount).banano),
+    Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi)
+  );
   return correct_recipient && correct_amount;
 }
 

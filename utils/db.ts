@@ -78,6 +78,10 @@ export async function updateStatus(pi: string, status: Order["status"]) {
   orders.updateOne({ paymentIntent: pi }, { $set: { status } });
 }
 
+export async function patchOrder(pi: string, patch: Partial<Order>) {
+  orders.updateOne({ paymentIntent: pi }, { $set: patch });
+}
+
 export async function addOrder(
   paymentIntent: string,
   source: ManualSource | CustodialSource,

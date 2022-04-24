@@ -7,7 +7,9 @@ export default function Login() {
   return (
     <Layout>
       <h1>Login to your account</h1>
-      <p>Enter the address associated with your account</p>
+      <p>
+        Enter your wallet address. If you just registered as a seller, you will receive it shortly.
+      </p>
       <label htmlFor="address">Address</label>
       <input
         onChange={(e) => setAddress(e.target.value)}

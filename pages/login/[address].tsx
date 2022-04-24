@@ -40,17 +40,17 @@ export default function Login({
     console.log(res);
     if (body.ok) {
       router.push("/dashboard");
+    } else {
+      setError(body.error || "Error");
     }
-
-    setError(body.error || "Error");
   };
   return (
     <Layout>
       <h1>Verify your ownership</h1>
       <br />
       <p>
-        To verify your ownership of the account please send 0.01 BAN to <b>{receivingAddress}</b>.
-        It will be returned immidiately.
+        To verify your ownership of the account please send 0.01 BAN (1 Banoshi) to{" "}
+        <b>{receivingAddress}</b>. It will be returned immidiately.
       </p>
       <br />
       <QRCodeSVG value={"ban:" + receivingAddress + "?amount=1000000000000000000000000000"} />
