@@ -3,7 +3,7 @@ import { getOffer } from "../../utils/offer";
 import { nanoid } from "nanoid";
 import stripeJs from "stripe";
 import axios from "axios";
-import { addOrder, getSource } from "../../utils/db";
+import { addOrder, getActiveSources, getSource } from "../../utils/db";
 import { getRate } from "../../utils/banano";
 
 interface Redirect {
@@ -18,43 +18,17 @@ interface Error {
 const URL = "https://banano.acctive.digital";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
-  console.log("Received new checkout request");
-  const authByBearer =
-    !!req.headers.authorization &&
-    req.headers.authorization !== "Bearer " + process.env.BEARER_TOKEN!;
-  authByBearer && console.log("Auth by bearer token");
   try {
-    if (!(!!process.env.DEV || authByBearer)) {
-      if (
-        req.body["g-recaptcha-response"] === undefined ||
-        req.body["g-recaptcha-response"] === "" ||
-        req.body["g-recaptcha-response"] === null
-      ) {
-        console.log("Not captcha header, aborting");
-        return res.json({ status: 401, message: "captcha missing" });
-      }
-      const verificationURL =
-        "https://www.google.com/recaptcha/api/siteverify?secret=" +
-        process.env.CAPTCHA +
-        "&response=" +
-        req.body["g-recaptcha-response"];
-      const approval = await axios.post(verificationURL);
-      if (!approval.data.success) {
-        console.log(
-          "Invalid captcha header, aborting",
-          approval.data.success,
-          approval.data["error-codes"]
-        );
-        return res.json({ status: 401, message: "captcha error" });
-      }
-    }
+    console.log("Received new checkout request");
+    const authByBearer = await authenticateSource(req, res);
+    if (!authByBearer || !(await authenticateHuman(req, res))) return;
     console.log("Request is valid");
     const amount = Number(req.body.amount);
     const test = req.body.test || false;
     test && console.log("Test payment requested");
     const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
     const recipient_address = req.body.address;
-    const sourceId = req.body.source;
+    const sourceId = authByBearer ? authByBearer.id : req.body.source;
     if (!recipient_address.match("ban_.{60}")) {
       res.json({ status: 400, message: "invalid address. Please provide a valid ban address" });
       return;
@@ -135,5 +109,66 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   } catch (error) {
     console.log(error);
     res.json({ status: 500, message: "Something went wrong, please try again later" });
+  }
+}
+
+async function authenticateSource(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    // Auth via Bearer token
+    if (!!req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+      const sources = await getActiveSources();
+      const source = sources.find(
+        (source) => source.secret === req.headers.authorization?.substring(7)
+      );
+      if (source) return source;
+      else {
+        res.status(403).json({
+          status: 403,
+          message: "Forbidden. Please provide your secret in the form of a Bearer token.",
+        });
+        return false;
+      }
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error.",
+    });
+    return false;
+  }
+}
+async function authenticateHuman(req: NextApiRequest, res: NextApiResponse) {
+  // Auth via captcha
+  try {
+    if (process.env.DEV) return true;
+    if (
+      req.body["g-recaptcha-response"] === undefined ||
+      req.body["g-recaptcha-response"] === "" ||
+      req.body["g-recaptcha-response"] === null
+    ) {
+      console.log("Not captcha header, aborting");
+      res.json({ status: 401, message: "captcha missing" });
+      return false;
+    }
+    const verificationURL =
+      "https://www.google.com/recaptcha/api/siteverify?secret=" +
+      process.env.CAPTCHA +
+      "&response=" +
+      req.body["g-recaptcha-response"];
+    const approval = await axios.post(verificationURL);
+    if (!approval.data.success) {
+      console.log(
+        "Invalid captcha header, aborting",
+        approval.data.success,
+        approval.data["error-codes"]
+      );
+      res.json({ status: 401, message: "captcha error" });
+      return true;
+    }
+  } catch (e) {
+    console.log(e);
+    res.json({ status: 500, message: "Internal server error." });
+    return false;
   }
 }

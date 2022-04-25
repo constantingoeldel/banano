@@ -5,9 +5,9 @@ import { nanoid } from "nanoid";
 let client = new MongoClient(process.env.MONGODB_URI!);
 
 client = await client.connect();
-export const orders = client.db("Banano").collection<Order>("orders");
-export const sources = client.db("Banano").collection<ManualSource | CustodialSource>("sources");
-export const users = client.db("Banano").collection<User>("users");
+export const orders = client.db().collection<Order>("orders");
+export const sources = client.db().collection<ManualSource | CustodialSource>("sources");
+export const users = client.db().collection<User>("users");
 
 export async function getUser(id: string) {
   return await users.findOne({ id });
@@ -72,6 +72,12 @@ export async function getSourceIdByAddress(address: string) {
   });
 
   return order?.id;
+}
+
+export async function getActiveSources() {
+  const activeSources = await sources.find({ active: true }).toArray();
+
+  return activeSources;
 }
 
 export async function updateStatus(pi: string, status: Order["status"]) {

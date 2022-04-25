@@ -34,6 +34,12 @@ async function veryifyAndProcess(hash: string, order: Order) {
   if (valid) {
     const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
     patchOrder(order.paymentIntent, { hash: hash });
+    if (order.test) {
+      await updateStatus(order.paymentIntent, "succeeded");
+      console.log("Not post-processing payment because test mode is on");
+      sendMail("Test mode is on, not transfering payment.", order.source.email);
+      return 200;
+    }
     return await postPayment(order, price_after_fees, order.paymentIntent, hash);
   } else {
     await updateStatus(order.paymentIntent, "invalid hash");
@@ -64,6 +70,7 @@ async function pay(order: Order) {
       {
         amount: order.amount,
         address: order.address,
+        test: order.test,
       },
       { headers: { Authorization: order.source.secret } }
     );
@@ -75,7 +82,7 @@ async function pay(order: Order) {
 async function postPayment(
   order: Order,
   price_after_fees: number,
-  paymentId: string,
+  paymentIntent: string,
   hash: string
 ) {
   console.log(
@@ -94,8 +101,8 @@ async function postPayment(
         order.transferGroup,
         process.env.DEV_MODE == "true"
       );
-  await patchOrder(paymentId, { transferId: result.id, transferAmount: price_after_fees });
-  await updateStatus(paymentId, "succeeded");
+  await patchOrder(paymentIntent, { transferId: result.id, transferAmount: price_after_fees });
+  await updateStatus(paymentIntent, "succeeded");
   const msg =
     "Successfully payed! Now sending " +
     order.amount +
