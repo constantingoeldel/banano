@@ -6,12 +6,15 @@ import { getOrder, patchOrder, updateStatus } from "../../utils/db";
 import { sendMail } from "../../utils/mail";
 import { Order } from "../../types";
 
+const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
+
 export default async function paymentSucceeded(event: stripeJs.Event): Promise<number> {
   try {
     const paymentIntent = event.data.object;
     // @ts-expect-error
     const paymentId: string = paymentIntent.id;
     const order = await getOrder(paymentId);
+    if (order.origin !== URL) return 200;
     const hash = order.hash || (await pay(order));
     return await veryifyAndProcess(hash, order);
   } catch (err) {

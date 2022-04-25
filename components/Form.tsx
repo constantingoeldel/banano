@@ -4,9 +4,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 type Props =
   | {
       test: true;
-      price?: never;
-      updatePrice?: never;
-      max?: number;
+      max: number;
       DEV_MODE: boolean;
       offers: {
         offer_id: string;
@@ -52,7 +50,7 @@ export default function Form({ test = false, offers, total, customers, max, DEV_
               (lowest, source) => (lowest = source.rate < lowest ? source.rate : lowest),
               offers[0].rate
             )
-            .toFixed(2)}{" "}
+            .toFixed(4)}{" "}
           EUR/BAN{" "}
         </b>
       </p>

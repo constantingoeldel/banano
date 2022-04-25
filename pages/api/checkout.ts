@@ -15,7 +15,7 @@ interface Error {
   status: number;
   message: string;
 }
-const URL = "https://banano.acctive.digital";
+const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
   try {

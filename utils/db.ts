@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId, WithId } from "mongodb";
 import { CustodialSource, ManualSource, Offer, Order, User } from "../types";
 import { nanoid } from "nanoid";
+const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
 
 let client = new MongoClient(process.env.MONGODB_URI!);
 
@@ -99,6 +100,7 @@ export async function addOrder(
   test: boolean
 ) {
   const order: Order = {
+    origin: URL,
     timestamp: Date.now(),
     offer,
     source,

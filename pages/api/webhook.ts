@@ -43,14 +43,17 @@ export async function constructEvent(
   const DEV_MODE = process.env.DEV;
   const local = process.env.LOCAL_ENDPOINT!;
   const test_payment = process.env.TEST_ENDPOINT!;
+  const dev_payment = process.env.DEV_ENDPOINT!;
+  const dev_test_payment = process.env.DEV_TEST_ENDPOINT!;
   const normal_payment = process.env.ENDPOINT!;
   const staging = process.env.STAGING_ENDPOINT!;
-  const webhookSecret = DEV_MODE ? local : test ? test_payment : normal_payment;
+  let webhookSecret = DEV_MODE ? local : test ? test_payment : normal_payment;
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch {
     try {
-      event = stripe.webhooks.constructEvent(buf, sig, staging);
+      webhookSecret = test ? dev_test_payment : dev_payment;
+      event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
     } catch {
       throw new Error("Could not construct event");
     }

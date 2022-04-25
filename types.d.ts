@@ -69,6 +69,7 @@ export interface Order {
   test: boolean;
   source: CustodialSource | ManualSource;
   transferGroup: string;
+  origin: string;
   offer: Offer;
   hash?: string;
   transferId?: string;
