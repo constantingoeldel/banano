@@ -4,4 +4,7 @@ module.exports = {
       config.experiments.layers = true
     return config
   },
+  experimental: {
+    outputStandalone: true,
+  },
 }

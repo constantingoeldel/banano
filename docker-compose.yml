@@ -1,0 +1,73 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    container_name: "web"
+  mongodb:
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=pi
+      - MONGO_INITDB_ROOT_PASSWORD=io7FSExPdEOnSPAA
+    volumes:
+      - database:/data/db
+  loki:
+    image: grafana/loki:2.0.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command:
+      - --config.file=/mnt/config/loki-config.yaml
+    volumes:
+      - ./loki-config.yaml:/mnt/config/loki-config.yaml:ro
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./grafana/provisioning-datasources.yml:/etc/grafana/provisioning/datasources/provisioning-datasources.yml
+  banano-node:
+    image: bananocoin/banano:latest
+    container_name: banano-node
+    hostname: banano-node
+    environment:
+      - TERM=xterm
+    restart: unless-stopped
+    ports:
+      - "7071:7071"
+      - "127.0.0.1:7072:7072"
+      - "127.0.0.1:7074:7074"
+    volumes:
+      - ./banano-node:/root
+
+  banano-node-monitor:
+    image: nanotools/nanonodemonitor:latest
+    container_name: banano-node-monitor
+    hostname: banano-node-monitor
+    restart: unless-stopped
+    volumes:
+      - ./banano-node-monitor:/opt/bananoNodeMonitor
+    ports:
+      - "80:80"
+
+  watchtower:
+    image: v2tec/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    command: watchtower banano-node banano-node-monitor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  default:
+    external:
+      name: banano-node-network
+volumes:
+  database:
+    driver: local

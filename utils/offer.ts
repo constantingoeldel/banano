@@ -52,7 +52,6 @@ export async function getOffers() {
     const marketRate = await getRate();
     console.log("Market rate", marketRate);
     const activeSources = await sources.find({ active: true }).toArray();
-    console.log("Active sources", activeSources);
     const offers = activeSources.map((source) => getOffer(source, marketRate));
     const offersWithData = await Promise.all(offers);
     // Why won't typescipt allow a filter here?
