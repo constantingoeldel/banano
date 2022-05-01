@@ -35,14 +35,14 @@ services:
   #   volumes:
   #     - /opt/containers/grafana/grafana:/var/lib/grafana
   monitor:
-    image: "nanotools/nanonodemonitor:TAG"
+    image: "nanotools/nanonodemonitor:latest"
     restart: "unless-stopped"
     ports:
       - "80:80"
     volumes:
       - "~:/opt"
   node:
-    image: "nanocurrency/nano:TAG"
+    image: "nanocurrency/nano:latest"
     restart: "unless-stopped"
     ports:
       - "7075:7075"
