@@ -6,34 +6,34 @@ volumes:
   database:
     driver: local
 services:
-  mongodb:
-    container_name: mongodb
-    image: mongo:latest
-    ports:
-      - 27017:27017
-    volumes:
-      - database:/data/db
-  loki:
-    image: grafana/loki:2.0.0
-    container_name: loki
-    ports:
-      - "3100:3100"
-    command:
-      - --config.file=/mnt/config/loki-config.yaml
-    volumes:
-      - ./loki-config.yaml:/mnt/config/loki-config.yaml:ro
+  # mongodb:
+  #   container_name: mongodb
+  #   image: mongo:latest
+  #   ports:
+  #     - 27017:27017
+  #   volumes:
+  #     - database:/data/db
+  # loki:
+  #   image: grafana/loki:2.0.0
+  #   container_name: loki
+  #   ports:
+  #     - "3100:3100"
+  #   command:
+  #     - --config.file=/mnt/config/loki-config.yaml
+  #   volumes:
+  #     - ./loki-config.yaml:/mnt/config/loki-config.yaml:ro
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    restart: unless-stopped
-    ports:
-      - 3000:3000
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-    volumes:
-      - /opt/containers/grafana/grafana:/var/lib/grafana
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     - GF_AUTH_ANONYMOUS_ENABLED=true
+  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+  #   volumes:
+  #     - /opt/containers/grafana/grafana:/var/lib/grafana
   banano-node:
     image: bananocoin/banano:latest
     container_name: banano-node
@@ -65,11 +65,11 @@ services:
     command: watchtower banano-node banano-node-monitor
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-  web:
-    build: .
-    ports:
-      - "8080:8080"
-    container_name: "web"
-    depends_on:
-      - mongodb
-      - banano-node
+  # web:
+  #   build: .
+  #   ports:
+  #     - "8080:8080"
+  #   container_name: "web"
+  #   depends_on:
+  #     - mongodb
+  #     - banano-node
