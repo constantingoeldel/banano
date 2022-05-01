@@ -5,6 +5,8 @@ import stripeJs from "stripe";
 import axios from "axios";
 import { addOrder, getActiveSources, getSource } from "../../utils/db";
 import { getRate } from "../../utils/banano";
+import { WithId } from "mongodb";
+import { CustodialSource, ManualSource } from "../../types";
 
 interface Redirect {
   url: string;
@@ -15,13 +17,22 @@ interface Error {
   status: number;
   message: string;
 }
-const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
+const URL = process.env.DEV ? "https://dev.acctive.digital" : "https://banano.acctive.digital";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
   try {
     console.log("Received new checkout request");
     const authByBearer = await authenticateSource(req, res);
-    if (!authByBearer || !(await authenticateHuman(req, res))) return;
+    console.log("Authenticated by bearer", authByBearer);
+
+    if (!(authByBearer || (await authenticateHuman(req, res)))) {
+      console.log("Authentication failed");
+      res.json({
+        status: 401,
+        message: "Please provide authentication by either bearer token or captcha",
+      });
+      return;
+    }
     console.log("Request is valid");
     const amount = Number(req.body.amount);
     const test = req.body.test || false;
@@ -112,7 +123,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 }
 
-async function authenticateSource(req: NextApiRequest, res: NextApiResponse) {
+async function authenticateSource(
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<false | WithId<ManualSource | CustodialSource>> {
   try {
     // Auth via Bearer token
     if (!!req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
@@ -122,12 +136,11 @@ async function authenticateSource(req: NextApiRequest, res: NextApiResponse) {
       );
       if (source) return source;
       else {
-        res.status(403).json({
-          status: 403,
-          message: "Forbidden. Please provide your secret in the form of a Bearer token.",
-        });
+        res.json({ status: 401, message: "Invalid token" });
         return false;
       }
+    } else {
+      return false;
     }
   } catch (e) {
     console.log(e);
@@ -164,8 +177,9 @@ async function authenticateHuman(req: NextApiRequest, res: NextApiResponse) {
         approval.data["error-codes"]
       );
       res.json({ status: 401, message: "captcha error" });
-      return true;
+      return false;
     }
+    return true;
   } catch (e) {
     console.log(e);
     res.json({ status: 500, message: "Internal server error." });
