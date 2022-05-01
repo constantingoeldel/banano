@@ -7,31 +7,31 @@ services:
   mongodb:
     image: mongo
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=pi
-      - MONGO_INITDB_ROOT_PASSWORD=io7FSExPdEOnSPAA
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=user
     volumes:
       - database:/data/db
-  loki:
-    image: grafana/loki:2.0.0
-    container_name: loki
-    ports:
-      - "3100:3100"
-    command:
-      - --config.file=/mnt/config/loki-config.yaml
-    volumes:
-      - ./loki-config.yaml:/mnt/config/loki-config.yaml:ro
+  # loki:
+  #   image: grafana/loki:2.0.0
+  #   container_name: loki
+  #   ports:
+  #     - "3100:3100"
+  #   command:
+  #     - --config.file=/mnt/config/loki-config.yaml
+  #   volumes:
+  #     - ./loki-config.yaml:/mnt/config/loki-config.yaml:ro
 
   # Grafana
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - 3000:3000
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-    volumes:
-      - ./grafana/provisioning-datasources.yml:/etc/grafana/provisioning/datasources/provisioning-datasources.yml
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     - GF_AUTH_ANONYMOUS_ENABLED=true
+  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+  #   volumes:
+  #     - ./grafana/provisioning-datasources.yml:/etc/grafana/provisioning/datasources/provisioning-datasources.yml
   banano-node:
     image: bananocoin/banano:latest
     container_name: banano-node
