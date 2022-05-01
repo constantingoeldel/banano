@@ -42,7 +42,7 @@ services:
     volumes:
       - "~:/opt"
   node:
-    image: "nanocurrency/nano:latest"
+    image: "bananocoin/banano:latest"
     restart: "unless-stopped"
     ports:
       - "7075:7075"
