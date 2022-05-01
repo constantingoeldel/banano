@@ -25,12 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const authByBearer = await authenticateSource(req, res);
     console.log("Authenticated by bearer", authByBearer);
 
-    if (!(authByBearer || (await authenticateHuman(req, res)))) {
+    if (!authByBearer && !(await authenticateHuman(req, res))) {
       console.log("Authentication failed");
-      res.json({
-        status: 401,
-        message: "Please provide authentication by either bearer token or captcha",
-      });
+
       return;
     }
     console.log("Request is valid");
