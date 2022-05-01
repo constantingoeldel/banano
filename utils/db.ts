@@ -9,6 +9,7 @@ client = await client.connect();
 export const orders = client.db().collection<Order>("orders");
 export const sources = client.db().collection<ManualSource | CustodialSource>("sources");
 export const users = client.db().collection<User>("users");
+console.log("Connected to database", orders.find({}).toArray());
 
 export async function getUser(id: string) {
   return await users.findOne({ id });
