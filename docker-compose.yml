@@ -8,12 +8,13 @@ volumes:
 services:
   mongodb:
     container_name: mongodb
-    image: mongo
+    image: mongo:latest
     ports:
       - 27017:27017
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_USERNAME=test
       - MONGO_INITDB_ROOT_PASSWORD=user
+
     volumes:
       - database:/data/db
   # loki:
