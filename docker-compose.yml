@@ -6,13 +6,20 @@ volumes:
   database:
     driver: local
 services:
-  # mongodb:
-  #   container_name: mongodb
-  #   image: mongo:latest
-  #   ports:
-  #     - 27017:27017
-  #   volumes:
-  #     - database:/data/db
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    container_name: "web"
+    depends_on:
+      - mongodb
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - database:/data/db
   # loki:
   #   image: grafana/loki:2.0.0
   #   container_name: loki
@@ -34,27 +41,18 @@ services:
   #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
   #   volumes:
   #     - /opt/containers/grafana/grafana:/var/lib/grafana
-  monitor:
-    image: "nanotools/nanonodemonitor:latest"
-    restart: "unless-stopped"
-    ports:
-      - "80:80"
-    volumes:
-      - "~:/opt"
-  node:
-    image: "bananocoin/banano:latest"
-    restart: "unless-stopped"
-    ports:
-      - "7075:7075"
-      - "127.0.0.1:7076:7076"
-    volumes:
-      - "~:/root"
-
-  # web:
-  #   build: .
+  # monitor:
+  #   image: "nanotools/nanonodemonitor:latest"
+  #   restart: "unless-stopped"
   #   ports:
-  #     - "8080:8080"
-  #   container_name: "web"
-  #   depends_on:
-  #     - mongodb
-  #     - banano-node
+  #     - "80:80"
+  #   volumes:
+  #     - "~:/opt"
+  # node:
+  #   image: "bananocoin/banano:latest"
+  #   restart: "unless-stopped"
+  #   ports:
+  #     - "7075:7075"
+  #     - "127.0.0.1:7076:7076"
+  #   volumes:
+  #     - "~:/root"
