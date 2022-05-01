@@ -1,3 +1,10 @@
+networks:
+  default:
+    external:
+      name: banano-node-network
+volumes:
+  database:
+    driver: local
 services:
   mongodb:
     image: mongo
@@ -41,15 +48,15 @@ services:
   #   volumes:
   #     - ./banano-node:/root
 
-  banano-node-monitor:
-    image: nanotools/nanonodemonitor:latest
-    container_name: banano-node-monitor
-    hostname: banano-node-monitor
-    restart: unless-stopped
-    volumes:
-      - ./banano-node-monitor:/opt/bananoNodeMonitor
-    ports:
-      - "80:80"
+  # banano-node-monitor:
+  #   image: nanotools/nanonodemonitor:latest
+  #   container_name: banano-node-monitor
+  #   hostname: banano-node-monitor
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./banano-node-monitor:/opt/bananoNodeMonitor
+  #   ports:
+  #     - "80:80"
 
   # watchtower:
   #   image: v2tec/watchtower
@@ -63,10 +70,3 @@ services:
   #   ports:
   #     - "8080:8080"
   #   container_name: "web"
-networks:
-  default:
-    external:
-      name: banano-node-network
-volumes:
-  database:
-    driver: local
