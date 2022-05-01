@@ -1,9 +1,4 @@
 services:
-  web:
-    build: .
-    ports:
-      - "8080:8080"
-    container_name: "web"
   mongodb:
     image: mongo
     environment:
@@ -63,7 +58,11 @@ services:
     command: watchtower banano-node banano-node-monitor
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    container_name: "web"
 networks:
   default:
     external:
