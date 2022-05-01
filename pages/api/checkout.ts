@@ -154,7 +154,6 @@ async function authenticateSource(
 async function authenticateHuman(req: NextApiRequest, res: NextApiResponse) {
   // Auth via captcha
   try {
-    console.log(process.env.DEV);
     if (process.env.DEV) return true;
     if (
       req.body["g-recaptcha-response"] === undefined ||
@@ -178,8 +177,9 @@ async function authenticateHuman(req: NextApiRequest, res: NextApiResponse) {
         approval.data["error-codes"]
       );
       res.json({ status: 401, message: "captcha error" });
-      return true;
+      return false;
     }
+    return true;
   } catch (e) {
     console.log(e);
     res.json({ status: 500, message: "Internal server error." });
