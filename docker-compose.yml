@@ -27,19 +27,19 @@ services:
   #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
   #   volumes:
   #     - ./grafana/provisioning-datasources.yml:/etc/grafana/provisioning/datasources/provisioning-datasources.yml
-  banano-node:
-    image: bananocoin/banano:latest
-    container_name: banano-node
-    hostname: banano-node
-    environment:
-      - TERM=xterm
-    restart: unless-stopped
-    ports:
-      - "7071:7071"
-      - "127.0.0.1:7072:7072"
-      - "127.0.0.1:7074:7074"
-    volumes:
-      - ./banano-node:/root
+  # banano-node:
+  #   image: bananocoin/banano:latest
+  #   container_name: banano-node
+  #   hostname: banano-node
+  #   environment:
+  #     - TERM=xterm
+  #   restart: unless-stopped
+  #   ports:
+  #     - "7071:7071"
+  #     - "127.0.0.1:7072:7072"
+  #     - "127.0.0.1:7074:7074"
+  #   volumes:
+  #     - ./banano-node:/root
 
   banano-node-monitor:
     image: nanotools/nanonodemonitor:latest
@@ -51,18 +51,18 @@ services:
     ports:
       - "80:80"
 
-  watchtower:
-    image: v2tec/watchtower
-    container_name: watchtower
-    restart: unless-stopped
-    command: watchtower banano-node banano-node-monitor
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-  web:
-    build: .
-    ports:
-      - "8080:8080"
-    container_name: "web"
+  # watchtower:
+  #   image: v2tec/watchtower
+  #   container_name: watchtower
+  #   restart: unless-stopped
+  #   command: watchtower banano-node banano-node-monitor
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  # web:
+  #   build: .
+  #   ports:
+  #     - "8080:8080"
+  #   container_name: "web"
 networks:
   default:
     external:
