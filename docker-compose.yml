@@ -24,7 +24,7 @@ services:
       - ./loki-config.yaml:/mnt/config/loki-config.yaml:ro
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana-oss:latest
     container_name: grafana
     ports:
       - 3000:3000
