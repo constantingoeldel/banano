@@ -7,6 +7,11 @@ volumes:
   loki:
     driver: local
 services:
+  # web:
+  #   build: .
+
+  #   ports:
+  #     - "80:3000"
   mongodb:
     container_name: mongodb
     image: mongo:latest

@@ -1,4 +1,3 @@
-import stripeJs from "stripe";
 import { sendBanano, verifyTransaction } from "../../utils/banano";
 import axios, { AxiosResponse } from "axios";
 import { transfer } from "../../utils/stripe";
@@ -8,24 +7,20 @@ import { Order } from "../../types";
 
 const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
 
-export default async function paymentSucceeded(event: stripeJs.Event): Promise<number> {
+export default async function paymentSucceeded(paymentIntent: string): Promise<number> {
   try {
-    const paymentIntent = event.data.object;
-    // @ts-expect-error
-    const paymentId: string = paymentIntent.id;
-    const order = await getOrder(paymentId);
+    const order = await getOrder(paymentIntent);
     if (order.origin !== URL) return 200;
     const hash = order.hash || (await pay(order));
     return await veryifyAndProcess(hash, order);
   } catch (err) {
-    // @ts-expect-error
-    event?.data?.object?.id && updateStatus(event.data.object.id, "failed");
+    paymentIntent && updateStatus(paymentIntent, "failed");
     const mail = await sendMail(
       "An error occured while fulfilling an order:" +
         err +
         "\n" +
         "The request was: " +
-        JSON.stringify(event.data.object)
+        paymentIntent
     );
     console.log(err);
     console.log("Order failed", mail);
@@ -33,7 +28,7 @@ export default async function paymentSucceeded(event: stripeJs.Event): Promise<n
   }
 }
 async function veryifyAndProcess(hash: string, order: Order) {
-  const valid = await verifyTransaction(hash, order);
+  const valid = await verifyTransaction(hash, order.address, order.amount);
   if (valid) {
     const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
     patchOrder(order.paymentIntent, { hash: hash });

@@ -1,43 +1,63 @@
-import banano from "@bananocoin/bananojs";
-import { verifyTransaction } from "./banano";
-import { getOrder } from "./db";
+import { getRate, receivePending, sendBanano, verifyTransaction } from "./banano";
 
-describe("Testing Banano utilities", () => {
-  beforeEach(() => {
-    banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
+describe("Get the current exchange rate", () => {
+  it("should return the exchange rate", async () => {
+    const exchangeRate = await getRate();
+    expect(exchangeRate).toBeGreaterThan(0);
   });
+});
+
+describe("Transaction validation", () => {
   it("Validates a transaction", async () => {
     const result = await verifyTransaction(
       "EE41976A6281F6E8F22B9A3EDED75C3390F16AAD727BE10981DF9F723BD89A34",
-      {
-        timestamp: 1650814943454,
-        offer: {
-          source_id: "sid_QusETE1e0LtWsR2_a0BHQ",
-          offer_id: "oid_Fi8mVq8zLxKObbzxpUCS9",
-          balance: 199,
-          rate: 0.014996223,
-          name: "Banano Marketplace",
-        },
-        source: {
-          id: "sid_QusETE1e0LtWsR2_a0BHQ",
-          secret: "secret_3dg334o7UC3dKAe8QeRLM",
-          email: "constantingoeldel@gmail.com",
-          name: "Banano Marketplace",
-          account: "acct_1Ks7C2Rk3GVm1OPC",
-          active: true,
-          custodial: true,
-          address: "ban_18p3senih3iwwt46imcdb6wd1t1r35wrzd1hki9aog9ak3xpa7ifpo6iuh69",
-          seed: "a9137c020dadf768c51bd683eed312c538f9fd75cb2802d4516329dfa15a047e",
-          price: { min: 1, margin: 1.1, market: true },
-        },
-        transferGroup: "tid_E-qakeA89EmaokLldvci3",
-        address: "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
-        paymentIntent: "pi_3Ks7ZrDJ4WsOC9lD0aCq7hPP",
-        amount: 150,
-        price: 250,
-        status: "failed",
-        test: false,
-      }
+      "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
+      150
+    );
+    expect(result).toBe(true);
+  });
+  it("Rejets a falsy hash", async () => {
+    const result = await verifyTransaction(
+      "EE41976A6281F6E8F22B9A3EDED75C3390F16AAD727BE10981DF9F723BD89A37",
+      "ban_18p3senih3iwwt46imcdb6wd1t1r35wrzd1hki9aog9ak3xpa7ifpo6iuh69",
+      150
+    );
+    expect(result).toBe(false);
+  });
+  it("Rejects a falsy amount", async () => {
+    const result = await verifyTransaction(
+      "EE41976A6281F6E8F22B9A3EDED75C3390F16AAD727BE10981DF9F723BD89A34",
+
+      "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
+      1000
+    );
+    expect(result).toBe(false);
+  });
+  it("Rejects a falsy recipient", async () => {
+    const result = await verifyTransaction(
+      "EE41976A6281F6E8F22B9A3EDED75C3390F16AAD727BE10981DF9F723BD89A34",
+      "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
+
+      150
+    );
+    expect(result).toBe(true);
+  });
+});
+
+describe("Send BAN", () => {
+  it("Sends BAN", async () => {
+    await receivePending(process.env.SEED!);
+
+    const hash = await sendBanano(
+      1,
+      "ban_18cs318fp9dgqhqy6or3pdebrkgkqifyodwxwymg1jcpxdskow7qq9bej7hb",
+      process.env.SEED!
+    );
+    await receivePending(process.env.SEED!);
+    const result = await verifyTransaction(
+      hash,
+      "ban_18cs318fp9dgqhqy6or3pdebrkgkqifyodwxwymg1jcpxdskow7qq9bej7hb",
+      1
     );
     expect(result).toBe(true);
   });

@@ -3,7 +3,6 @@ import banano from "@bananocoin/bananojs";
 import axios from "axios";
 import { randomBytes } from "crypto";
 import { Block, Order, Transaction } from "../types";
-import { sendMail } from "./mail";
 
 banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
 export async function getRate(): Promise<number> {
@@ -34,18 +33,26 @@ export async function sendBanano(amount: number, recipient: string, seed: string
   });
 }
 
-export async function verifyTransaction(hash: string, order: Order) {
+export async function verifyTransaction(
+  hash: string,
+  recipient: string,
+  amount: number
+): Promise<boolean> {
   console.log("Verifying transaction...");
-  const response = await axios.get<Block>("https://api.creeper.banano.cc/v2/blocks/" + hash);
+  try {
+    const response = await axios.get<Block>("https://api.creeper.banano.cc/v2/blocks/" + hash);
 
-  const correct_recipient = response.data.contents.link_as_account === order.address;
-  const correct_amount =
-    Number(banano.getBananoPartsFromRaw(response.data.amount).banano) ===
-      Math.floor(order.amount) &&
-    Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi) ===
-      Math.floor((Math.floor(order.amount) - order.amount) * 100);
+    const correct_recipient = response.data.contents.link_as_account === recipient;
+    const correct_amount =
+      Number(banano.getBananoPartsFromRaw(response.data.amount).banano) === Math.floor(amount) &&
+      Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi) ===
+        Math.floor((Math.floor(amount) - amount) * 100);
 
-  return correct_recipient && correct_amount;
+    return correct_recipient && correct_amount;
+  } catch (error) {
+    console.error("Error: Can't get block with hash " + hash);
+    return false;
+  }
 }
 
 export async function getBalance(account: string) {
@@ -73,7 +80,7 @@ export async function generateNewAccount(): Promise<{ seed: string; address: str
   const seed = randomBytes(32).toString("hex");
   const address = await banano.getBananoAccountFromSeed(seed, 0);
   const hash = await sendBanano(0.0001, address, process.env.SEED!);
-  const openHash = banano.openBananoAccountFromSeed(
+  banano.openBananoAccountFromSeed(
     seed,
     0,
     process.env.REPRESENTATIVE,

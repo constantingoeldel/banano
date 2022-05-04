@@ -3,18 +3,16 @@ import { getOffer } from "../../utils/offer";
 import { nanoid } from "nanoid";
 import stripeJs from "stripe";
 import axios from "axios";
-import { addOrder, getActiveSources, getSource } from "../../utils/db";
+import { addOrder, getActiveSources, getSource, sources } from "../../utils/db";
 import { getRate } from "../../utils/banano";
 import { WithId } from "mongodb";
 import { CustodialSource, ManualSource } from "../../types";
 
 interface Redirect {
   url: string;
-  status: number;
 }
 
 interface Error {
-  status: number;
   message: string;
 }
 const URL = process.env.DEV ? "https://dev.acctive.digital" : "https://banano.acctive.digital";
@@ -22,14 +20,15 @@ const URL = process.env.DEV ? "https://dev.acctive.digital" : "https://banano.ac
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
   try {
     console.log("Received new checkout request");
-    const authByBearer = await authenticateSource(req, res);
-    console.log("Authenticated by bearer", authByBearer);
-
-    if (!(authByBearer || (await authenticateHuman(req, res)))) {
+    const authByBearer = !!req.headers.authorization;
+    const authenticated =
+      authByBearer && typeof req.headers.authorization === "string"
+        ? await authenticateSource(req.headers.authorization)
+        : await authenticateHuman(req.body["g-recaptcha-response"]);
+    if (authenticated.status !== 200) {
       console.log("Authentication failed");
-      res.json({
-        status: 401,
-        message: "Please provide authentication by either bearer token or captcha",
+      res.status(authenticated.status).json({
+        message: authenticated.message,
       });
       return;
     }
@@ -39,34 +38,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     test && console.log("Test payment requested");
     const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
     const recipient_address = req.body.address;
-    const sourceId = authByBearer ? authByBearer.id : req.body.source;
-    if (!recipient_address.match("ban_.{60}")) {
-      res.json({ status: 400, message: "invalid address. Please provide a valid ban address" });
+    const sourceId = authenticated.source ? authenticated.source.id : req.body.source;
+    console.log(recipient_address);
+    if (
+      !recipient_address ||
+      typeof recipient_address !== "string" ||
+      !recipient_address.match("ban_.{60}")
+    ) {
+      res.status(400).json({ message: "Invalid address. Please provide a valid ban address" });
       return;
     }
     if (!sourceId || typeof sourceId !== "string") {
-      res.json({ status: 400, message: "No source id provided" });
+      res.status(400).json({ message: "No source id provided" });
       return;
     }
     if (!sourceId.includes("sid_")) {
-      res.json({ status: 400, message: "Invalid source id" });
+      res.status(400).json({ message: "Invalid source id" });
       return;
     }
     const marketRate = await getRate();
-    const source = await getSource(sourceId);
+    const source = authenticated.source || (await getSource(sourceId));
     if (!source) {
-      res.json({ status: 400, message: "Source does not exist" });
+      res.status(400).json({ message: "Source does not exist" });
       return;
     }
     const offer = await getOffer(source, marketRate);
     if (!offer) {
-      res.json({ status: 400, message: "Offer does not exist" });
+      res.status(400).json({ message: "Offer does not exist" });
       return;
     }
-    if (!amount || amount < 100 || amount > offer.balance) {
-      res.json({
-        status: 400,
-        message: "Invalid amount entered",
+    if (!amount || amount === NaN || amount < 100 || amount > offer.balance) {
+      res.status(400).json({
+        message: "Invalid amount",
       });
 
       return;
@@ -115,60 +118,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     );
     console.log("Payment intent registered: ", paymentIntent, "saved as order: " + id);
     authByBearer
-      ? res.json({ status: 200, message: session.url! })
+      ? res.status(200).json({ message: session.url! })
       : res.redirect(303, session.url!);
   } catch (error) {
     console.log(error);
-    res.json({ status: 500, message: "Something went wrong, please try again later" });
+    res.status(500).json({ message: "Something went wrong, please try again later" });
   }
 }
 
 async function authenticateSource(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<false | WithId<ManualSource | CustodialSource>> {
+  auth: string
+): Promise<
+  | { status: 401 | 500; message: string }
+  | { status: 200; source: WithId<CustodialSource | ManualSource> }
+> {
   try {
-    // Auth via Bearer token
-    if (!!req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
-      const sources = await getActiveSources();
-      const source = sources.find(
-        (source) => source.secret === req.headers.authorization?.substring(7)
-      );
-      if (source) return source;
-      else {
-        res.json({ status: 401, message: "Invalid token" });
-        return false;
-      }
-    } else {
-      return false;
+    if (!auth.startsWith("Bearer ")) {
+      return { status: 401, message: "Please provide a Bearer token" };
     }
+    const sources = await getActiveSources();
+    const source = sources.find((source) => source.secret === auth.substring(7));
+    if (!source) return { status: 401, message: "Invalid token" };
+    return { status: 200, source: source };
   } catch (e) {
     console.log(e);
-    res.status(500).json({
-      status: 500,
-      message: "Internal server error.",
-    });
-    return false;
+    return { status: 500, message: "Internal server error." };
   }
 }
-async function authenticateHuman(req: NextApiRequest, res: NextApiResponse) {
-  // Auth via captcha
+async function authenticateHuman(
+  captcha: string
+): Promise<{ status: 401 | 500; message: string } | { status: 200; source: null }> {
   try {
-    if (process.env.DEV) return true;
-    if (
-      req.body["g-recaptcha-response"] === undefined ||
-      req.body["g-recaptcha-response"] === "" ||
-      req.body["g-recaptcha-response"] === null
-    ) {
+    if (process.env.DEV) return { status: 200, source: null };
+    if (captcha === undefined || captcha === "" || captcha === null) {
       console.log("Not captcha header, aborting");
-      res.json({ status: 401, message: "captcha missing" });
-      return false;
+      return { status: 401, message: "captcha missing" };
     }
     const verificationURL =
       "https://www.google.com/recaptcha/api/siteverify?secret=" +
       process.env.CAPTCHA +
       "&response=" +
-      req.body["g-recaptcha-response"];
+      captcha;
     const approval = await axios.post(verificationURL);
     if (!approval.data.success) {
       console.log(
@@ -176,13 +166,11 @@ async function authenticateHuman(req: NextApiRequest, res: NextApiResponse) {
         approval.data.success,
         approval.data["error-codes"]
       );
-      res.json({ status: 401, message: "captcha error" });
-      return false;
+      return { status: 401, message: "captcha error" };
     }
-    return true;
+    return { status: 200, source: null };
   } catch (e) {
     console.log(e);
-    res.json({ status: 500, message: "Internal server error." });
-    return false;
+    return { status: 500, message: "Internal server error." };
   }
 }

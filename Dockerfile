@@ -20,6 +20,8 @@ COPY . .
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV test
+
 
 RUN yarn build
 
@@ -54,4 +56,4 @@ EXPOSE 80
 ENV PORT 80
 ENV MONGODB_URI mongodb://root:user@mongodb
 
-CMD ["node", "server.js"]
+CMD ["yarn", "start"]

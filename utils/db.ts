@@ -3,7 +3,11 @@ import { CustodialSource, ManualSource, Offer, Order, User } from "../types";
 import { nanoid } from "nanoid";
 const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
 
-let client = new MongoClient(process.env.MONGODB_URI!);
+console.log("Operating in " + process.env.NODE_ENV + " mode");
+console.log("MONGODB_URI_" + process.env.NODE_ENV.toUpperCase());
+const connectionString = process.env["MONGODB_URI_" + process.env.NODE_ENV.toUpperCase()]!;
+console.log("Connecting to " + connectionString);
+let client = new MongoClient(connectionString);
 
 client = await client.connect();
 export const orders = client.db().collection<Order>("orders");

@@ -38,8 +38,8 @@ export default function Form({ test = false, offers, total, customers, max, DEV_
   function updatePrice(amount: string) {
     setPrice(Number(amount) * offers[selectedSource].rate);
   }
-
-  return (
+  console.log(offers);
+  return offers && offers[0] ? (
     <form className="mt-5" action="/api/checkout" method="POST">
       <p className="total">
         So far, {total} BAN have been purchased by {customers} people. {max} BAN are available.{" "}
@@ -123,5 +123,7 @@ export default function Form({ test = false, offers, total, customers, max, DEV_
         {test ? "Test" : "Checkout"}
       </button>
     </form>
+  ) : (
+    <p>There are currently no offers to display :( </p>
   );
 }

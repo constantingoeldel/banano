@@ -24,7 +24,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 export async function handleWebhook(event: stripeJs.Event) {
   switch (event.type) {
     case "payment_intent.succeeded":
-      return paymentSucceeded(event);
+      // @ts-expect-error
+      const paymentIntent = event.data.object.id;
+      return paymentIntent && typeof paymentIntent === "string"
+        ? await paymentSucceeded(paymentIntent)
+        : 400;
     default:
       console.log(`Unhandled event type ${event.type}`);
       return 200;
