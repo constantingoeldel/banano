@@ -1,18 +1,12 @@
-networks:
-  default:
-    external:
-      name: banano-node-network
+version: "3"
 volumes:
   database:
     driver: local
+  grafana:
+    driver: local
+  loki:
+    driver: local
 services:
-  web:
-    build: .
-    ports:
-      - "8080:8080"
-    container_name: "web"
-    depends_on:
-      - mongodb
   mongodb:
     container_name: mongodb
     image: mongo:latest
@@ -20,39 +14,53 @@ services:
       - 27017:27017
     volumes:
       - database:/data/db
-  # loki:
-  #   image: grafana/loki:2.0.0
-  #   container_name: loki
-  #   ports:
-  #     - "3100:3100"
-  #   command:
-  #     - --config.file=/mnt/config/loki-config.yaml
-  #   volumes:
-  #     - ./loki-config.yaml:/mnt/config/loki-config.yaml:ro
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=user
+      - MONGO_INITDB_DATABASE=admin
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+  mongo_express:
+    image: mongo-express
+    environment:
+      - ME_CONFIG_OPTIONS_EDITORTHEME=default
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=user
+    ports:
+      - "8081:8081"
+    restart: on-failure
+    depends_on:
+      - mongodb
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+  loki:
+    image: grafana/loki:2.5.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki:/data/loki
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   container_name: grafana
-  #   restart: unless-stopped
-  #   ports:
-  #     - 3000:3000
-  #   environment:
-  #     - GF_AUTH_ANONYMOUS_ENABLED=true
-  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-  #   volumes:
-  #     - /opt/containers/grafana/grafana:/var/lib/grafana
-  # monitor:
-  #   image: "nanotools/nanonodemonitor:latest"
-  #   restart: "unless-stopped"
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - "~:/opt"
-  # node:
-  #   image: "bananocoin/banano:latest"
-  #   restart: "unless-stopped"
-  #   ports:
-  #     - "7075:7075"
-  #     - "127.0.0.1:7076:7076"
-  #   volumes:
-  #     - "~:/root"
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - grafana:/var/lib/grafana
+
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
