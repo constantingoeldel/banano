@@ -49,9 +49,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 8080
+EXPOSE 80
 
-ENV PORT 8080
+ENV PORT 80
 ENV MONGODB_URI mongodb://root:user@mongodb
 
 CMD ["node", "server.js"]

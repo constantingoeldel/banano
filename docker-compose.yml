@@ -7,13 +7,6 @@ volumes:
   loki:
     driver: local
 services:
-  nginx-proxy:
-    image: nginxproxy/nginx-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-
   mongodb:
     container_name: mongodb
     image: mongo:latest
@@ -64,10 +57,8 @@ services:
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - VIRTUAL_HOST=grafana.acctive.digital
     volumes:
       - grafana:/var/lib/grafana
-
     logging:
       driver: loki
       options:
