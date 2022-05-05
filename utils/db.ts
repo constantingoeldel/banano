@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId, WithId } from "mongodb";
+import { Collection, MongoClient, ObjectId, WithId } from "mongodb";
 import { CustodialSource, ManualSource, Offer, Order, User } from "../types";
 import { nanoid } from "nanoid";
 const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
@@ -6,14 +6,26 @@ const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.di
 console.log("Operating in " + process.env.NODE_ENV + " mode");
 console.log("MONGODB_URI_" + process.env.NODE_ENV.toUpperCase());
 const connectionString = process.env["MONGODB_URI_" + process.env.NODE_ENV.toUpperCase()]!;
-console.log("Connecting to " + connectionString);
-let client = new MongoClient(connectionString);
 
-client = await client.connect();
-export const orders = client.db().collection<Order>("orders");
-export const sources = client.db().collection<ManualSource | CustodialSource>("sources");
-export const users = client.db().collection<User>("users");
-console.log("Connected to database", orders.find({}).toArray());
+let dbInstance: {
+  orders: Collection<Order>;
+  sources: Collection<CustodialSource | ManualSource>;
+  users: Collection<User>;
+} | null = async function initDb(connectionString) {
+  console.log("Connecting to " + connectionString);
+  let client = new MongoClient(connectionString);
+
+  client = await client.connect();
+  dbInstance.orders = client.db().collection<Order>("orders");
+  dbInstance.sources = client.db().collection<ManualSource | CustodialSource>("sources");
+  dbInstance.users = client.db().collection<User>("users");
+};
+
+async function db() {
+  return dbInstance || (await initDb(connectionString));
+}
+
+console.log("Connected to database", db().orders.find({}).toArray());
 
 export async function getUser(id: string) {
   return await users.findOne({ id });
