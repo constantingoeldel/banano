@@ -1,6 +1,6 @@
 import request from "supertest";
 
-const req = request("localhost:3001");
+const req = request("localhost:3000");
 
 describe("Get checkout", () => {
   it("Rejects unauthorized requests", async () => {

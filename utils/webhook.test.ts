@@ -1,5 +1,4 @@
-import handleWebhook from "../pages/api/paymentSucceeded";
-
+import paymentSucceeded from "../pages/api/paymentSucceeded";
 describe("Test webhook response", () => {
   it("Rejects paymentIntents that don't exist", async () => {
     const response = await paymentSucceeded("fake_payment_intent_id");
