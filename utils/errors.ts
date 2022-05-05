@@ -17,7 +17,7 @@ export class AuthenticationError extends Error {
     this.name = "AuthenticationError";
   }
 }
-export class OriginError extends Error {
+export class VersionError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "OriginError";

@@ -2,11 +2,12 @@ import Stripe from "stripe";
 import { generateNewAccount } from "../../utils/banano";
 import { nanoid } from "nanoid";
 import { CustodialSource, ManualSource, Price, Source } from "../../types";
-import { addSource, createUser } from "../../utils/db";
 import { NextApiRequest, NextApiResponse } from "next";
 import validator from "validator";
+import getDB, { Database } from "../../utils/db";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    const db = await getDB();
     console.log("Received request", req.query);
     if (
       typeof req.query.email === "string" &&
@@ -20,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           typeof req.query.margin === "string" &&
           validator.isNumeric(req.query.margin)
         ) {
-          const redirectURL = await create(true, req.query.name, req.query.email, undefined, {
+          const redirectURL = await create(db, true, req.query.name, req.query.email, undefined, {
             min: Number(req.query.min),
             margin: Number(req.query.margin),
             market: req.query.market === "on",
@@ -35,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           validator.isURL(req.query.webhook, { require_tld: false })
         ) {
           const redirectURL = await create(
+            db,
             false,
             req.query.name,
             req.query.email,
@@ -53,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function create(
+  db: Database,
   custodial: boolean,
   name: string,
   email: string,
@@ -61,8 +64,8 @@ async function create(
 ) {
   const stripe = new Stripe(process.env.STRIPE_SECRET!, { apiVersion: "2020-08-27" });
   const createAccount = async (source: CustodialSource | ManualSource) => {
-    await addSource(source);
-    source.custodial && (await createUser(source.address, source.id));
+    await db.addSource(source);
+    source.custodial && (await db.createUser(source.address, source.id));
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: "https://banano.acctive.digital/create",

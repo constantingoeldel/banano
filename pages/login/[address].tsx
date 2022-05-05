@@ -2,20 +2,21 @@ import { withIronSessionSsr } from "iron-session/next";
 import { NextPageContext } from "next";
 import { useRouter } from "next/router";
 import { QRCodeSVG } from "qrcode.react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Layout from "../../components/Layout";
 import { ironOptions } from "../../utils/auth";
-import { createUser, getUserByAddress } from "../../utils/db";
+import getDB from "../../utils/db";
 //@ts-ignore
 export const getServerSideProps = withIronSessionSsr(login, ironOptions);
 
 async function login({ req, query }: NextPageContext) {
+  const db = await getDB();
   if (req && req.session.user) {
     return { redirect: { permanent: false, destination: "/dashboard" } };
   }
   const { address } = query;
-  const user = await getUserByAddress(address as string);
-  user || createUser(address as string);
+  const user = await db.getUserByAddress(address as string);
+  user || db.createUser(address as string);
 
   return {
     props: {

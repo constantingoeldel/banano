@@ -6,22 +6,21 @@ import { Order } from "../../types";
 import getDB, { Database } from "../../utils/db";
 import {
   DatabaseError,
-  OriginError,
+  VersionError,
   ServerError,
   TransactionError,
   TransferError,
   ValidationError,
 } from "../../utils/errors";
 
-const URL = process.env.DEV ? "dev.acctive.digital" : "https://banano.acctive.digital";
-
+const VERSION = process.env.VERSION!;
 export default async function paymentSucceeded(paymentIntent: string) {
   // success or data errors: Return nothing; server errors throw
   const db = await getDB();
   try {
     const order = await db.getOrder(paymentIntent);
-    if (order.origin !== URL)
-      throw new OriginError("Order " + paymentIntent + " is not from the correct origin");
+    if (order.version !== VERSION)
+      throw new VersionError("Order " + paymentIntent + " is not from the correct origin");
 
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
@@ -38,7 +37,7 @@ export default async function paymentSucceeded(paymentIntent: string) {
       );
       db.addError(paymentIntent, "Server error: " + String(error));
       throw error;
-    } else if (error instanceof DatabaseError || error instanceof OriginError) {
+    } else if (error instanceof DatabaseError || error instanceof VersionError) {
       console.log(error.message);
       db.addError(paymentIntent, error.message);
       return error.message;

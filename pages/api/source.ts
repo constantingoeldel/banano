@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { OfferResponse } from "../../types";
 import { getBalance, getRate, sendBanano } from "../../utils/banano";
-import { getSource } from "../../utils/db";
-
+import getDB from "../../utils/db";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<OfferResponse | { hash: string } | string>
@@ -37,8 +36,8 @@ export default async function handler(
 }
 
 export async function getUserVisibleSource(id: string) {
-  console.log(id);
-  const source = await getSource(id);
+  const db = await getDB();
+  const source = await db.getSource(id);
   if (!source) return null;
   if (source.custodial) {
     const balance = await getBalance(source.address);

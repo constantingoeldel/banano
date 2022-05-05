@@ -151,7 +151,7 @@ export class Database {
     test: boolean
   ) {
     const order: Order = {
-      origin: URL,
+      version: process.env.VERSION || "0.0.0",
       timestamp: Date.now(),
       offer,
       source,
