@@ -23,6 +23,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 export async function handleWebhook(event: stripeJs.Event) {
   switch (event.type) {
+    // case "application_fee.created":
+    //   console.log(event);
+    //   // @ts-expect-error
+    //   const charge = event.data.object.id.charge;
+    //   try {
+    //     pi && typeof pi === "string" && (await paymentSucceeded(pi));
+    //     return 200;
+    //   } catch (error) {
+    //     console.error(error);
+    //     return 500;
+    //   }
     case "payment_intent.succeeded":
       // @ts-expect-error
       const paymentIntent = event.data.object.id;
@@ -50,22 +61,24 @@ export async function constructEvent(
     apiVersion: "2020-08-27",
   });
   let event;
-  const DEV_MODE = process.env.DEV;
-  const local = process.env.LOCAL_ENDPOINT!;
-  const test_payment = process.env.TEST_ENDPOINT!;
-  const dev_payment = process.env.DEV_ENDPOINT!;
-  const dev_test_payment = process.env.DEV_TEST_ENDPOINT!;
-  const normal_payment = process.env.ENDPOINT!;
-  let webhookSecret = DEV_MODE ? local : test ? test_payment : normal_payment;
-  try {
-    event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
-  } catch {
+
+  const secrets = [
+    process.env.LOCAL_ENDPOINT!,
+    process.env.TEST_ENDPOINT!,
+    process.env.DEV_ENDPOINT!,
+    process.env.DEV_TEST_ENDPOINT!,
+    process.env.ENDPOINT!,
+    process.env.CONNECT_ENDPOINT!,
+    process.env.CONNECT_TEST_ENDPOINT!,
+  ];
+  for (const secret of secrets) {
     try {
-      webhookSecret = test ? dev_test_payment : dev_payment;
-      event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+      event = stripe.webhooks.constructEvent(buf, sig, secret);
+      break;
     } catch {
-      throw new Error("Could not construct event");
+      continue;
     }
   }
+  if (!event) throw new Error("Could not construct event");
   return event;
 }

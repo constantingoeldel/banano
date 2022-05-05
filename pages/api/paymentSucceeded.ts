@@ -69,25 +69,28 @@ export default async function paymentSucceeded(paymentIntent: string) {
     const valid = await verifyTransaction(hash, order.address, order.amount);
     if (valid) {
       try {
-        const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
+        // const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
         db.patchOrder(order.paymentIntent, { hash: hash });
         if (order.test) {
           await db.updateStatus(order.paymentIntent, "succeeded");
-          console.log("Not post-processing payment because test mode is on");
+          // console.log("Not post-processing payment because test mode is on");
           sendMail(
             "Successfully handled a test payment. Test payments are currently free of charge for users so you won't receive any compensation for this transaction. If you want to disable test payments, contact me.",
             order.source.email
           );
         } else {
-          console.log(
-            "Transaction is valid and confirmed! Charging " +
-              (order.price - price_after_fees) +
-              " ct. for this order. " +
-              price_after_fees +
-              " will be payed out to source " +
-              order.source.id
+          sendMail(
+            "Successfully handled payment. Check your dashboard for the transaction details.",
+            order.source.email
           );
-          await postPayment(db, order, price_after_fees, order.paymentIntent);
+          //   "Transaction is valid and confirmed! Charging " +
+          //     (order.price - price_after_fees) +
+          //     " ct. for this order. " +
+          //     price_after_fees +
+          //     " will be payed out to source " +
+          //     order.source.id
+          // );
+          // await postPayment(db, order, price_after_fees, order.paymentIntent);
         }
       } catch (error) {
         if (error instanceof TransferError) {

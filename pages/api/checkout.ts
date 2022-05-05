@@ -78,38 +78,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const transferGroup = "tid_" + nanoid();
     const stripe = new stripeJs(stripeSecret, {
       apiVersion: "2020-08-27",
-      stripeAccount: source.account,
     });
 
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: amount + " Bananos",
-              description: test
-                ? "Test the system with the card 4242 4242 4242 4242, any date in the future and any 3-digit code."
-                : "Price is the amount of bananos times the current exchange rate.",
+    const session = await stripe.checkout.sessions.create(
+      {
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: amount + " Bananos",
+                description: test
+                  ? "Test the system with the card 4242 4242 4242 4242, any date in the future and any 3-digit code."
+                  : "Price is the amount of bananos times the current exchange rate.",
+              },
+
+              unit_amount: price,
             },
 
-            unit_amount: price,
+            quantity: 1,
           },
-
-          quantity: 1,
+        ],
+        payment_intent_data: {
+          application_fee_amount: 15,
         },
-      ],
-      payment_intent_data: {
-        application_fee_amount: 30,
-        // transfer_group: transferGroup,
-        // on_behalf_of: source?.account,
-      },
 
-      mode: "payment",
-      allow_promotion_codes: true,
-      success_url: URL + "/",
-      cancel_url: URL + "/",
-    });
+        mode: "payment",
+        success_url: URL + "/",
+        cancel_url: URL + "/",
+      },
+      { stripeAccount: source.account }
+    );
     const paymentIntent = session.payment_intent as string;
     const id = await db.addOrder(
       paymentIntent,
