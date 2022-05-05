@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Status } from "../../types";
-import { getOrders } from "../../utils/db";
+import getDB from "../../utils/db";
 import { getOffers } from "../../utils/offer";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Status>) {
@@ -11,10 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
 export async function status(): Promise<Status> {
   console.log("Rebuilding the status cache");
+  const db = await getDB();
   try {
-    const customers = await getOrders();
-    const offers = await getOffers();
-    console.log(offers);
+    const customers = await db.getOrders();
+    const offers = await getOffers(db);
     const total = customers.reduce((sum, order) => sum + order.amount, 0);
     const max = offers.reduce((sum, source) => sum + source.balance, 0);
     return {

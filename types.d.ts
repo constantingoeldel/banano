@@ -65,7 +65,7 @@ export interface Order {
   paymentIntent: string;
   amount: number;
   price: number;
-  status: "open" | "succeeded" | "failed" | "invalid hash";
+  status: "open" | "succeeded" | "failed" | "invalid hash" | "transaction error" | "transfer error";
   test: boolean;
   source: CustodialSource | ManualSource;
   transferGroup: string;

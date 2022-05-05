@@ -26,9 +26,14 @@ export async function handleWebhook(event: stripeJs.Event) {
     case "payment_intent.succeeded":
       // @ts-expect-error
       const paymentIntent = event.data.object.id;
-      return paymentIntent && typeof paymentIntent === "string"
-        ? await paymentSucceeded(paymentIntent)
-        : 400;
+      try {
+        paymentIntent &&
+          typeof paymentIntent === "string" &&
+          (await paymentSucceeded(paymentIntent));
+        return 200;
+      } catch {
+        return 500;
+      }
     default:
       console.log(`Unhandled event type ${event.type}`);
       return 200;

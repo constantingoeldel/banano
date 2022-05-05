@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import { CustodialSource, ManualSource, Offer, Order } from "../types";
 import { getBalance, getRate, receivePending } from "./banano";
 import { nanoid } from "nanoid";
-import { sources } from "./db";
+import db, { Database } from "./db";
 
 export async function fetchOffer(url: string, secret: string) {
   const response: AxiosResponse<{ rate: number; balance: number }> = await axios.get(url, {
@@ -21,14 +21,12 @@ export async function getOffer(
     if (source.custodial) {
       await receivePending(source.seed);
       balance = await getBalance(source.address);
-      console.log(marketRateInCt * source.price.margin, source.price.min);
       rate = source.price.market
         ? marketRateInCt * source.price.margin < source.price.min
           ? source.price.min / 100
           : (marketRateInCt * source.price.margin) / 100
         : source.price.min;
     } else {
-      console.log(source);
       const offer = await fetchOffer(source.webhook, source.secret);
       balance = offer.balance;
       rate = offer.rate;
@@ -47,11 +45,10 @@ export async function getOffer(
   }
 }
 
-export async function getOffers() {
+export async function getOffers(db: Database) {
   try {
     const marketRate = await getRate();
-    console.log("Market rate", marketRate);
-    const activeSources = await sources.find({ active: true }).toArray();
+    const activeSources = await db.getActiveSources();
     const offers = activeSources.map((source) => getOffer(source, marketRate));
     const offersWithData = await Promise.all(offers);
     // Why won't typescipt allow a filter here?

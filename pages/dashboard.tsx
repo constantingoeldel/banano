@@ -2,21 +2,21 @@ import Link from "next/link";
 import Layout from "../components/Layout";
 import { Price } from "../types";
 import { getBalance } from "../utils/banano";
-import { getSourceIdByAddress, getUserOrders } from "../utils/db";
 import { withIronSessionSsr } from "iron-session/next";
 import { ironOptions } from "../utils/auth";
 import { NextPageContext } from "next";
 import { getUserVisibleSource } from "./api/source";
+import getDB from "../utils/db";
 
 export const getServerSideProps = withIronSessionSsr(
   async ({ req }: { req: NextPageContext["req"] }) => {
+    const db = await getDB();
     if (!req || !req.session.user) {
       return { redirect: { permanent: false, destination: "/login" } };
     }
     const user = req.session.user;
-    console.log(user);
-    const orders = await getUserOrders(user.address);
-    const sourceId = user.sourceId || (await getSourceIdByAddress(user.address));
+    const orders = await db.getUserOrders(user.address);
+    const sourceId = user.sourceId || (await db.getSourceIdByAddress(user.address));
     let userVisibleSource = sourceId ? await getUserVisibleSource(sourceId) : null;
 
     return {

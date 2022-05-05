@@ -3,10 +3,10 @@ import { getOffer } from "../../utils/offer";
 import { nanoid } from "nanoid";
 import stripeJs from "stripe";
 import axios from "axios";
-import { addOrder, getActiveSources, getSource, sources } from "../../utils/db";
 import { getRate } from "../../utils/banano";
 import { WithId } from "mongodb";
 import { CustodialSource, ManualSource } from "../../types";
+import getDB, { Database } from "../../utils/db";
 
 interface Redirect {
   url: string;
@@ -16,14 +16,14 @@ interface Error {
   message: string;
 }
 const URL = process.env.DEV ? "https://dev.acctive.digital" : "https://banano.acctive.digital";
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
+  const db = await getDB();
   try {
     console.log("Received new checkout request");
     const authByBearer = !!req.headers.authorization;
     const authenticated =
       authByBearer && typeof req.headers.authorization === "string"
-        ? await authenticateSource(req.headers.authorization)
+        ? await authenticateSource(db, req.headers.authorization)
         : await authenticateHuman(req.body["g-recaptcha-response"]);
     if (authenticated.status !== 200) {
       console.log("Authentication failed");
@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return;
     }
     const marketRate = await getRate();
-    const source = authenticated.source || (await getSource(sourceId));
+    const source = authenticated.source || (await db.getSource(sourceId));
     if (!source) {
       res.status(400).json({ message: "Source does not exist" });
       return;
@@ -106,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       cancel_url: URL + "/",
     });
     const paymentIntent = session.payment_intent as string;
-    const id = await addOrder(
+    const id = await db.addOrder(
       paymentIntent,
       source,
       offer,
@@ -127,6 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 }
 
 async function authenticateSource(
+  db: Database,
   auth: string
 ): Promise<
   | { status: 401 | 500; message: string }
@@ -136,7 +137,7 @@ async function authenticateSource(
     if (!auth.startsWith("Bearer ")) {
       return { status: 401, message: "Please provide a Bearer token" };
     }
-    const sources = await getActiveSources();
+    const sources = await db.getActiveSources();
     const source = sources.find((source) => source.secret === auth.substring(7));
     if (!source) return { status: 401, message: "Invalid token" };
     return { status: 200, source: source };

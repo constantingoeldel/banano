@@ -16,7 +16,15 @@ describe("Transaction validation", () => {
     );
     expect(result).toBe(true);
   });
-  it("Rejets a falsy hash", async () => {
+  it("Validates a transaction to itself", async () => {
+    const result = await verifyTransaction(
+      "F4347C4F22D23167463595F9785954E8B7A66C30BC7F2DE43D620338E60C8726",
+      "ban_18p3senih3iwwt46imcdb6wd1t1r35wrzd1hki9aog9ak3xpa7ifpo6iuh69",
+      0.01
+    );
+    expect(result).toBe(true);
+  });
+  it("Rejects a falsy hash", async () => {
     const result = await verifyTransaction(
       "EE41976A6281F6E8F22B9A3EDED75C3390F16AAD727BE10981DF9F723BD89A37",
       "ban_18p3senih3iwwt46imcdb6wd1t1r35wrzd1hki9aog9ak3xpa7ifpo6iuh69",

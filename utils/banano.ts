@@ -38,7 +38,6 @@ export async function verifyTransaction(
   recipient: string,
   amount: number
 ): Promise<boolean> {
-  console.log("Verifying transaction...");
   try {
     const response = await axios.get<Block>("https://api.creeper.banano.cc/v2/blocks/" + hash);
 
@@ -46,7 +45,7 @@ export async function verifyTransaction(
     const correct_amount =
       Number(banano.getBananoPartsFromRaw(response.data.amount).banano) === Math.floor(amount) &&
       Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi) ===
-        Math.floor((Math.floor(amount) - amount) * 100);
+        Math.floor((amount - Math.floor(amount)) * 100);
 
     return correct_recipient && correct_amount;
   } catch (error) {
