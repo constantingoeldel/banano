@@ -3,6 +3,7 @@ import Link from "next/link";
 import Form from "../components/Form";
 import Layout from "../components/Layout";
 import { Status } from "../types";
+import { getExchangeRate } from "../utils/banano";
 import { status } from "./api/status";
 
 export async function getServerSideProps({
@@ -15,11 +16,13 @@ export async function getServerSideProps({
   res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=86400");
 
   const props = await status();
+  const rate = await getExchangeRate();
 
   return {
     props: {
       ...props,
       DEV_MODE: !!process.env.DEV,
+      exchangeRate_USD_EUR: rate,
     },
   };
 }
@@ -29,6 +32,7 @@ export default function Home({
   total,
   customers,
   max,
+  exchangeRate_USD_EUR,
   DEV_MODE,
 }: Status & { DEV_MODE: boolean }) {
   return (
@@ -54,7 +58,14 @@ export default function Home({
           <br />
         </div>
       </div>
-      <Form customers={customers} offers={offers} total={total} max={max} DEV_MODE={DEV_MODE} />
+      <Form
+        customers={customers}
+        offers={offers}
+        total={total}
+        max={max}
+        DEV_MODE={DEV_MODE}
+        exchangeRate_USD_EUR={exchangeRate_USD_EUR}
+      />
       <Link href="/test">
         <a>I want to try it out first</a>
       </Link>

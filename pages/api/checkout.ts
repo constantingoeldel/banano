@@ -3,7 +3,7 @@ import { getOffer } from "../../utils/offer";
 import { nanoid } from "nanoid";
 import stripeJs from "stripe";
 import axios from "axios";
-import { getRate } from "../../utils/banano";
+import { getExchangeRate, getRateEUR } from "../../utils/banano";
 import { WithId } from "mongodb";
 import { CustodialSource, ManualSource } from "../../types";
 import getDB, { Database } from "../../utils/db";
@@ -38,6 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     test && console.log("Test payment requested");
     const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
     const recipient_address = req.body.address;
+    const currency = req.body.currency === "usd" ? "usd" : "eur";
     const sourceId = authenticated.source ? authenticated.source.id : req.body.source;
     console.log(recipient_address);
     if (
@@ -56,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       res.status(400).json({ message: "Invalid source id" });
       return;
     }
-    const marketRate = await getRate();
+    const marketRate = await getRateEUR();
     const source = authenticated.source || (await db.getSource(sourceId));
     if (!source) {
       res.status(400).json({ message: "Source does not exist" });
@@ -74,7 +75,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       return;
     }
-    const price = Math.ceil(amount * offer.rate * 100) + 25;
+    const exchangeRate = currency === "eur" ? 1 : await getExchangeRate();
+    const price = Math.ceil(amount * offer.rate * 100 * exchangeRate) + 25;
     const transferGroup = "tid_" + nanoid();
     const stripe = new stripeJs(stripeSecret, {
       apiVersion: "2020-08-27",
@@ -85,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         line_items: [
           {
             price_data: {
-              currency: "eur",
+              currency: currency,
               product_data: {
                 name: amount + " Bananos",
                 description: test

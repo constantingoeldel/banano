@@ -30,7 +30,8 @@
     "stripe": "^8.216.0",
     "validator": "^13.7.0",
     "winston": "^3.7.2",
-    "winston-loki": "^6.0.5"
+    "winston-loki": "^6.0.5",
+    "zustand": "^4.0.0-rc.1"
   },
   "devDependencies": {
     "@swc/core": "^1.2.177",

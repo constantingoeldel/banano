@@ -1,5 +1,6 @@
 export type Status = {
   total: number;
+  exchangeRate_USD_EUR: number;
   status: "good" | "bad";
   customers: number;
   offers: {

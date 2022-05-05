@@ -1,11 +1,14 @@
 import { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useStore } from "../utils/store";
 
 type Props =
   | {
       test: true;
       max: number;
       DEV_MODE: boolean;
+      exchangeRate_USD_EUR: number;
+
       offers: {
         offer_id: string;
         source_id: string;
@@ -20,6 +23,7 @@ type Props =
       test?: false;
       max: number;
       DEV_MODE: boolean;
+      exchangeRate_USD_EUR: number;
       offers: {
         offer_id: string;
         source_id: string;
@@ -31,26 +35,35 @@ type Props =
       customers: number;
     };
 
-export default function Form({ test = false, offers, total, customers, max, DEV_MODE }: Props) {
+export default function Form({
+  test = false,
+  offers,
+  total,
+  customers,
+  max,
+  exchangeRate_USD_EUR,
+  DEV_MODE,
+}: Props) {
   const [price, setPrice] = useState(1);
   const [selectedSource, setSource] = useState(0);
   const [isCaptchaCompleted, setIsCaptchaCompleted] = useState(false);
   function updatePrice(amount: string) {
     setPrice(Number(amount) * offers[selectedSource].rate);
   }
+  const { currency } = useStore();
   return offers && offers[0] ? (
     <form className="mt-5" action="/api/checkout" method="POST">
       <p className="total">
         So far, {total} BAN have been purchased by {customers} people. {max} BAN are available.{" "}
         <b className="rate">
           The current best rate is:{" "}
-          {offers
-            .reduce(
+          {(
+            offers.reduce(
               (lowest, source) => (lowest = source.rate < lowest ? source.rate : lowest),
               offers[0].rate
-            )
-            .toFixed(4)}{" "}
-          EUR/BAN{" "}
+            ) * (currency !== "eur" ? exchangeRate_USD_EUR : 1)
+          ).toFixed(4)}{" "}
+          {currency}/BAN{" "}
         </b>
       </p>
       <h2>Select one of these sources: </h2>
@@ -60,10 +73,13 @@ export default function Form({ test = false, offers, total, customers, max, DEV_
           key={source.source_id}
           onClick={() => setSource(index)}
         >
-          {source.name} offers up to {source.balance} BAN for {source.rate.toFixed(4)} EUR/BAN
+          {source.name} offers up to {source.balance} BAN for{" "}
+          {((currency !== "eur" ? exchangeRate_USD_EUR : 1) * source.rate).toFixed(4)}{" "}
+          {currency.toUpperCase()}/BAN
         </button>
       ))}
       <br />
+
       <label htmlFor="address">What address should I send your BAN to?</label>
       <input
         className="w-2/3"
@@ -89,6 +105,7 @@ export default function Form({ test = false, offers, total, customers, max, DEV_
           max={max ? max : 100000}
         />
       </div>
+      <input type="text" value={currency} name="currency" readOnly hidden />
       {test && (
         <>
           <label htmlFor="test">Test Mode: </label>

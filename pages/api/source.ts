@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { OfferResponse } from "../../types";
-import { getBalance, getRate, sendBanano } from "../../utils/banano";
+import { getBalance, getRateEUR, sendBanano } from "../../utils/banano";
 import getDB from "../../utils/db";
 export default async function handler(
   req: NextApiRequest,
@@ -14,7 +14,7 @@ export default async function handler(
     const address = process.env.ADDRESS!;
     const margin = 1.02;
     const balance = await getBalance(address);
-    let rate = (await getRate()) * margin;
+    let rate = (await getRateEUR()) * margin;
     res.json({ balance, rate });
   } else if (req.method === "POST") {
     //@ts-ignore

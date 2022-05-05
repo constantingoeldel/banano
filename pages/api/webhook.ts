@@ -63,13 +63,13 @@ export async function constructEvent(
   let event;
 
   const secrets = [
-    process.env.LOCAL_ENDPOINT!,
     process.env.TEST_ENDPOINT!,
     process.env.DEV_ENDPOINT!,
     process.env.DEV_TEST_ENDPOINT!,
     process.env.ENDPOINT!,
     process.env.CONNECT_ENDPOINT!,
     process.env.CONNECT_TEST_ENDPOINT!,
+    process.env.LOCAL_ENDPOINT!,
   ];
   for (const secret of secrets) {
     try {

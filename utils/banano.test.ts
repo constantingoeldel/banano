@@ -1,8 +1,8 @@
-import { getRate, receivePending, sendBanano, verifyTransaction } from "./banano";
+import { getRateEUR, receivePending, sendBanano, verifyTransaction } from "./banano";
 
 describe("Get the current exchange rate", () => {
   it("should return the exchange rate", async () => {
-    const exchangeRate = await getRate();
+    const exchangeRate = await getRateEUR();
     expect(exchangeRate).toBeGreaterThan(0);
   });
 });

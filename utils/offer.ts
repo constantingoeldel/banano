@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { CustodialSource, ManualSource, Offer, Order } from "../types";
-import { getBalance, getRate, receivePending } from "./banano";
+import { getBalance, getRateEUR, receivePending } from "./banano";
 import { nanoid } from "nanoid";
 import db, { Database } from "./db";
 
@@ -47,7 +47,7 @@ export async function getOffer(
 
 export async function getOffers(db: Database) {
   try {
-    const marketRate = await getRate();
+    const marketRate = await getRateEUR();
     const activeSources = await db.getActiveSources();
     const offers = activeSources.map((source) => getOffer(source, marketRate));
     const offersWithData = await Promise.all(offers);

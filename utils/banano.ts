@@ -5,13 +5,27 @@ import { randomBytes } from "crypto";
 import { Block, Order, Transaction } from "../types";
 
 banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
-export async function getRate(): Promise<number> {
+export async function getRateEUR(): Promise<number> {
   const banano = await axios.get(
     "https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=eur"
   );
   const exchangeRate = banano.data.banano.eur;
 
   return exchangeRate;
+}
+export async function getRateUSD(): Promise<number> {
+  const banano = await axios.get(
+    "https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=usd"
+  );
+  const exchangeRate = banano.data.banano.usd;
+
+  return exchangeRate;
+}
+
+export async function getExchangeRate() {
+  const eur = await getRateEUR();
+  const usd = await getRateUSD();
+  return usd / eur;
 }
 
 export async function sendBanano(amount: number, recipient: string, seed: string): Promise<string> {
