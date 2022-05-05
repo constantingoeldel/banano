@@ -34,7 +34,7 @@ export default function Home({
   max,
   exchangeRate_USD_EUR,
   DEV_MODE,
-}: Status & { DEV_MODE: boolean }) {
+}: Status & { DEV_MODE: boolean; exchangeRate_USD_EUR: number }) {
   return (
     <Layout>
       <div className="product">

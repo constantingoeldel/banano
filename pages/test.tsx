@@ -35,7 +35,7 @@ export default function Test({
   max,
   DEV_MODE,
   exchangeRate_USD_EUR,
-}: Status & { DEV_MODE: boolean }) {
+}: Status & { DEV_MODE: boolean; exchangeRate_USD_EUR: number }) {
   return (
     <Layout>
       <h1>Test buying Banano with fiat</h1>
