@@ -1,6 +1,6 @@
 import { sendBanano, verifyTransaction } from "../../utils/banano";
 import axios, { AxiosResponse } from "axios";
-import { transfer } from "../../utils/stripe";
+import { refund, transfer } from "../../utils/stripe";
 import { sendMail } from "../../utils/mail";
 import { Order } from "../../types";
 import getDB, { Database } from "../../utils/db";
@@ -11,6 +11,7 @@ import {
   TransactionError,
   TransferError,
   ValidationError,
+  RefundError,
 } from "../../utils/errors";
 
 const VERSION = process.env.VERSION!;
@@ -21,6 +22,8 @@ export default async function paymentSucceeded(paymentIntent: string) {
     const order = await db.getOrder(paymentIntent);
     if (order.version !== VERSION)
       throw new VersionError("Order " + paymentIntent + " is not from the correct origin");
+    if (order.status === "succeeded" || order.status === "refunded")
+      throw new ValidationError("Order " + paymentIntent + " has already been processed");
 
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
@@ -95,6 +98,17 @@ export default async function paymentSucceeded(paymentIntent: string) {
       }
     } else {
       await db.updateStatus(order.paymentIntent, "invalid hash");
+      console.log("Invalid hash: Refunding payment");
+      try {
+        await refund(order.paymentIntent, order.source.id);
+        await db.updateStatus(order.paymentIntent, "refunded");
+      } catch (error) {
+        if (error instanceof RefundError) {
+          console.log("Refund error: " + error.message);
+          await db.updateStatus(order.paymentIntent, "refund error");
+          throw error;
+        }
+      }
       throw new ValidationError("Order " + order.paymentIntent + " has an invalid hash");
     }
   }

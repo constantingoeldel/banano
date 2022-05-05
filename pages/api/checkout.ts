@@ -76,7 +76,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
     const price = Math.ceil(amount * offer.rate * 100) + 25;
     const transferGroup = "tid_" + nanoid();
-    const stripe = new stripeJs(stripeSecret, { apiVersion: "2020-08-27" });
+    const stripe = new stripeJs(stripeSecret, {
+      apiVersion: "2020-08-27",
+      stripeAccount: source.account,
+    });
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -97,9 +100,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         },
       ],
       payment_intent_data: {
-        transfer_group: transferGroup,
+        application_fee_amount: 30,
+        // transfer_group: transferGroup,
         // on_behalf_of: source?.account,
       },
+
       mode: "payment",
       allow_promotion_codes: true,
       success_url: URL + "/",

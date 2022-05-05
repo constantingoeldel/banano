@@ -31,7 +31,8 @@ export async function handleWebhook(event: stripeJs.Event) {
           typeof paymentIntent === "string" &&
           (await paymentSucceeded(paymentIntent));
         return 200;
-      } catch {
+      } catch (error) {
+        console.error(error);
         return 500;
       }
     default:
@@ -55,7 +56,6 @@ export async function constructEvent(
   const dev_payment = process.env.DEV_ENDPOINT!;
   const dev_test_payment = process.env.DEV_TEST_ENDPOINT!;
   const normal_payment = process.env.ENDPOINT!;
-  const staging = process.env.STAGING_ENDPOINT!;
   let webhookSecret = DEV_MODE ? local : test ? test_payment : normal_payment;
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);

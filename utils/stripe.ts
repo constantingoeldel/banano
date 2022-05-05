@@ -1,5 +1,5 @@
 import stripeJs from "stripe";
-import { TransferError } from "./errors";
+import { RefundError, TransferError } from "./errors";
 export async function transfer(
   amount: number,
   destination: string,
@@ -19,5 +19,24 @@ export async function transfer(
     return transfer;
   } catch (error) {
     throw new TransferError(String(error));
+  }
+}
+
+export async function refund(charge: string, account: string) {
+  try {
+    const stripeSecret = process.env.STRIPE_SECRET!;
+
+    const stripe = new stripeJs(stripeSecret, { apiVersion: "2020-08-27" });
+    const refund = await stripe.refunds.create(
+      {
+        charge,
+        refund_application_fee: true,
+      },
+      {
+        stripeAccount: account,
+      }
+    );
+  } catch (error) {
+    throw new RefundError(String(error));
   }
 }

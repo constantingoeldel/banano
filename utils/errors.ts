@@ -43,3 +43,10 @@ export class TransferError extends Error {
     this.name = "TransferError";
   }
 }
+
+export class RefundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RefundError";
+  }
+}
