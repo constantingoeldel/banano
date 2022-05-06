@@ -15,7 +15,7 @@ interface Redirect {
 interface Error {
   message: string;
 }
-const URL = process.env.DEV ? "https://dev.acctive.digital" : "https://banano.acctive.digital";
+const URL = process.env.DEV ? "https://dev.acctive.digital" : "https://ban.app";
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
   const db = await getDB();
   try {

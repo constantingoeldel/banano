@@ -68,8 +68,8 @@ async function create(
     source.custodial && (await db.createUser(source.address, source.id));
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: "https://banano.acctive.digital/create",
-      return_url: "https://banano.acctive.digital/dashboard/",
+      refresh_url: "https://ban.app/create",
+      return_url: "https://ban.app/dashboard/",
       type: "account_onboarding",
     });
     return accountLink.url;
@@ -80,7 +80,7 @@ async function create(
     email: email,
     business_type: "individual",
     business_profile: {
-      url: "https://banano.acctive.digital/source/" + id,
+      url: "https://ban.app/source/" + id,
     },
   });
 

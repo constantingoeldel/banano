@@ -174,7 +174,7 @@ export default async function paymentSucceeded(paymentIntent: string) {
   //         price_after_fees / 100 +
   //         "€ for the " +
   //         order.amount +
-  //         " BAN you provided. See all the details in your dashboard at banano.acctive.digital/dashboard",
+  //         " BAN you provided. See all the details in your dashboard at ban.app/dashboard",
   //       order.source.email
   //     );
   //     console.log("Order fulfilled");
