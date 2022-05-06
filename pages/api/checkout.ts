@@ -77,6 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
     const exchangeRate = currency === "eur" ? 1 : await getExchangeRate();
     const price = Math.ceil(amount * offer.rate * 100 * exchangeRate) + 25;
+    const fee = price * 0.01 > 15 ? Math.floor(price * 0.01) : 15;
     const transferGroup = "tid_" + nanoid();
     const stripe = new stripeJs(stripeSecret, {
       apiVersion: "2020-08-27",
@@ -102,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         ],
         payment_intent_data: {
-          application_fee_amount: 15,
+          application_fee_amount: fee,
         },
 
         mode: "payment",
@@ -122,7 +123,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       price,
       !!test
     );
-    console.log("Payment intent registered: ", paymentIntent, "saved as order: " + id);
+    console.log(
+      "Payment intent registered: ",
+      paymentIntent,
+      "saved as order: " + id + "\n Fee: " + fee
+    );
     authByBearer
       ? res.status(200).json({ message: session.url! })
       : res.redirect(303, session.url!);
