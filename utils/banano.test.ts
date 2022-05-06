@@ -16,10 +16,10 @@ describe("Transaction validation", () => {
     );
     expect(result).toBe(true);
   });
-  it("Validates a transaction to itself", async () => {
+  it.only("Validates a transaction to itself", async () => {
     const result = await verifyTransaction(
-      "F4347C4F22D23167463595F9785954E8B7A66C30BC7F2DE43D620338E60C8726",
-      "ban_18p3senih3iwwt46imcdb6wd1t1r35wrzd1hki9aog9ak3xpa7ifpo6iuh69",
+      "73590EA067914B416DFCFDF5190FD5F996C07A2FAFA68DC5A013E6CAE46C37E5",
+      "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
       0.01
     );
     expect(result).toBe(true);

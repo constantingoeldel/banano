@@ -63,8 +63,22 @@ export async function verifyTransaction(
 
     return correct_recipient && correct_amount;
   } catch (error) {
-    console.error("Error: Can't get block with hash " + hash);
-    return false;
+    try {
+      const response = await axios.get<Block>(
+        "https://api.yellowspyglass.com/yellowspyglass/block/" + hash
+      );
+
+      const correct_recipient = response.data.contents.linkAsAccount === recipient;
+      const correct_amount =
+        Number(banano.getBananoPartsFromRaw(response.data.amount).banano) === Math.floor(amount) &&
+        Number(banano.getBananoPartsFromRaw(response.data.amount).banoshi) ===
+          Math.floor((amount - Math.floor(amount)) * 100);
+      return correct_recipient && correct_amount;
+    } catch (error) {
+      console.log(error);
+      console.error("Error: Can't get block with hash " + hash);
+      return false;
+    }
   }
 }
 

@@ -98,7 +98,8 @@ interface Block {
     representative: string;
     balance: number;
     link: string;
-    link_as_account: string;
+    link_as_account?: string;
+    linkAsAccount?: string;
     signature: string;
     work: string;
     subtype: string;
