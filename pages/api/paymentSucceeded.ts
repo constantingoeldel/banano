@@ -28,6 +28,7 @@ export default async function paymentSucceeded(paymentIntent: string) {
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
     console.log("Order " + paymentIntent + " has been processed");
+    sendMail("Order " + paymentIntent + " has been processed");
     return "Success";
   } catch (error) {
     if (error instanceof ServerError) {
@@ -152,30 +153,30 @@ export default async function paymentSucceeded(paymentIntent: string) {
       }
     }
   }
-  async function postPayment(
-    db: Database,
-    order: Order,
-    price_after_fees: number,
-    paymentIntent: string
-  ) {
-    const result = order.transferId
-      ? { id: order.transferId, amount: order.transferAmount }
-      : await transfer(
-          Math.floor(price_after_fees),
-          order.source.account,
-          order.transferGroup,
-          process.env.DEV_MODE == "true"
-        );
-    await db.patchOrder(paymentIntent, { transferId: result.id, transferAmount: price_after_fees });
-    await db.updateStatus(paymentIntent, "succeeded");
-    await sendMail(
-      "Merchant Update: \n The order has been fulfilled. You will receive " +
-        price_after_fees / 100 +
-        "€ for the " +
-        order.amount +
-        " BAN you provided. See all the details in your dashboard at banano.acctive.digital/dashboard",
-      order.source.email
-    );
-    console.log("Order fulfilled");
-  }
-}
+//   async function postPayment(
+//     db: Database,
+//     order: Order,
+//     price_after_fees: number,
+//     paymentIntent: string
+//   ) {
+//     const result = order.transferId
+//       ? { id: order.transferId, amount: order.transferAmount }
+//       : await transfer(
+//           Math.floor(price_after_fees),
+//           order.source.account,
+//           order.transferGroup,
+//           process.env.DEV_MODE == "true"
+//         );
+//     await db.patchOrder(paymentIntent, { transferId: result.id, transferAmount: price_after_fees });
+//     await db.updateStatus(paymentIntent, "succeeded");
+//     await sendMail(
+//       "Merchant Update: \n The order has been fulfilled. You will receive " +
+//         price_after_fees / 100 +
+//         "€ for the " +
+//         order.amount +
+//         " BAN you provided. See all the details in your dashboard at banano.acctive.digital/dashboard",
+//       order.source.email
+//     );
+//     console.log("Order fulfilled");
+//   }
+// }

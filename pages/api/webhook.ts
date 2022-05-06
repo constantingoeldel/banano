@@ -2,6 +2,7 @@ import paymentSucceeded from "./paymentSucceeded";
 import stripeJs from "stripe";
 import { NextApiRequest, NextApiResponse } from "next";
 import { buffer, json } from "micro";
+import { sendMail } from "../../utils/mail";
 
 export const config = {
   api: {
@@ -41,9 +42,11 @@ export async function handleWebhook(event: stripeJs.Event) {
         paymentIntent &&
           typeof paymentIntent === "string" &&
           (await paymentSucceeded(paymentIntent));
+
         return 200;
       } catch (error) {
         console.error(error);
+        sendMail(String(error));
         return 500;
       }
     default:
