@@ -9,7 +9,7 @@ export function sendMail(message: string, recipient: string = "constantingoeldel
       subject: "Message from the banano server",
       text: message,
     };
-    true
+    DEV
       ? resolve("Not sending email as in DEV mode")
       : sgMail
           .send(msg)
