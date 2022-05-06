@@ -105,7 +105,7 @@ export default async function paymentSucceeded(paymentIntent: string) {
       await db.updateStatus(order.paymentIntent, "invalid hash");
       console.log("Invalid hash: Refunding payment");
       try {
-        await refund(order.paymentIntent, order.source.id);
+        await refund(order.paymentIntent, order.source.account);
         await db.updateStatus(order.paymentIntent, "refunded");
       } catch (error) {
         if (error instanceof RefundError) {
