@@ -17,6 +17,7 @@
 # misc
 .DS_Store
 *.pem
+/data
 
 /backend/dist
 /backend/node_modules
