@@ -1,0 +1,24 @@
+name: Test, lint and build
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - name: Install dependencies
+        run: npm install
+      # - name: Run jest
+      #   run: npm run test
+      # - name: Run Cypress
+      #   run: npm run ci
+      - name: Lint
+        run: npm run lint
+      - name: Build for production
+        run: npm run build

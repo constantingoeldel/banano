@@ -1,36 +1,28 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getBalance } from "./_banano";
-import {  getOrders, getRate } from "./_utils";
+import { Status } from "../../types";
+import getDB from "../../utils/db";
+import { getOffers } from "../../utils/offer";
 
-type Data = {
-  total: number;
-  status: string;
-  customers: number;
-  rate: number;
-  max: number;
-};
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Status>) {
   const data = await status();
   res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=86400");
   res.json(data);
 }
 
-export async function status(): Promise<Data> {
+export async function status(): Promise<Status> {
   console.log("Rebuilding the status cache");
+  const db = await getDB();
   try {
-    const balance = await getBalance();
-    const exchangeRate = await getRate();
-    const data = await getOrders();
-    const customers = data.filter((order) => order.status === "successful");
-    const total = customers.reduce((sum, order) => sum + order.price, 0);
+    const customers = await db.getOrders();
+    const offers = await getOffers(db);
+    const total = customers.reduce((sum, order) => sum + order.amount, 0);
+    const max = offers.reduce((sum, source) => sum + source.balance, 0);
     return {
       total,
       status: "good",
       customers: customers.length,
-      rate: exchangeRate,
-      max: balance,
+      max,
+      offers,
     };
   } catch (err) {
     console.log(err);
@@ -38,7 +30,7 @@ export async function status(): Promise<Data> {
       total: 0,
       status: "bad",
       customers: 0,
-      rate: 0,
+      offers: [],
       max: 0,
     };
   }

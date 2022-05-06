@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Link from "next/link";
-import { useState } from "react";
 import Form from "../components/Form";
 import Layout from "../components/Layout";
+import { Status } from "../types";
+import { getExchangeRate } from "../utils/banano";
 import { status } from "./api/status";
 
 export async function getServerSideProps({
@@ -15,28 +16,25 @@ export async function getServerSideProps({
   res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=86400");
 
   const props = await status();
+  const rate = await getExchangeRate();
 
   return {
     props: {
       ...props,
       DEV_MODE: !!process.env.DEV,
+      exchangeRate_USD_EUR: rate,
     },
   };
 }
-interface Props {
-  rate: number;
-  total: number;
-  max: number;
-  customers: number;
-  DEV_MODE: boolean;
-}
 
-export default function Home({ rate, total, customers, max, DEV_MODE }: Props) {
-  const [price, setPrice] = useState(0);
-  function updatePrice(amount: string) {
-    setPrice(Number(amount) * rate);
-  }
-
+export default function Home({
+  offers,
+  total,
+  customers,
+  max,
+  exchangeRate_USD_EUR,
+  DEV_MODE,
+}: Status & { DEV_MODE: boolean; exchangeRate_USD_EUR: number }) {
   return (
     <Layout>
       <div className="product">
@@ -58,14 +56,16 @@ export default function Home({ rate, total, customers, max, DEV_MODE }: Props) {
             </Link>
           </p>
           <br />
-          <p className="total">
-            So far, {total} BAN have been purchased by {customers} people. {max} BAN are left in my
-            wallet
-          </p>
-          <b className="rate">The current rate is: {rate.toFixed(4)} BAN/EUR </b>
         </div>
       </div>
-      <Form updatePrice={updatePrice} price={price} max={max} DEV_MODE={DEV_MODE} />
+      <Form
+        customers={customers}
+        offers={offers}
+        total={total}
+        max={max}
+        DEV_MODE={DEV_MODE}
+        exchangeRate_USD_EUR={exchangeRate_USD_EUR}
+      />
       <Link href="/test">
         <a>I want to try it out first</a>
       </Link>

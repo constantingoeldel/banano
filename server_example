@@ -1,0 +1,69 @@
+import app from "express";
+import banano from "@bananocoin/bananojs";
+import axios from "axios";
+
+const server = app();
+banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
+
+server.get("/", async (req, res) => {
+  if (req.headers["authorization"] !== process.env.API_KEY) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  const address = process.env.ADDRESS!;
+  const margin = 1.02;
+  const balance = await getBalance(address);
+  let rate = (await getRate()) * margin;
+  res.json({ balance, rate });
+});
+
+server.post("/", async (req, res) => {
+  //@ts-ignore
+  const requestIsValid = ({ payment, amount, address }) => {
+    // implementation left up to the user
+    return true;
+  };
+  if (req.headers["authorization"] !== process.env.API_KEY) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  if (!requestIsValid(req.body)) {
+    res.status(400).send("Invalid request");
+    return;
+  }
+  const hash = await sendBanano(req.body.amount, req.body.address, process.env.SEED!);
+  res.json({ hash });
+});
+
+server.listen(3003, () => {
+  console.log("Server listening on port 3003");
+});
+
+async function sendBanano(amount: number, recipient: string, seed: string): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    const rawAmount = banano.getRawStrFromBananoStr(String(amount));
+    banano.sendAmountToBananoAccount(
+      seed,
+      0,
+      recipient,
+      rawAmount,
+      (hash: string) => {
+        console.log("Transaction hash:", hash), resolve(hash);
+      },
+      (error: any) => reject(error)
+    );
+  });
+}
+
+async function getBalance(account: string) {
+  const accountInfo = await banano.getAccountInfo(account);
+  return Math.floor(accountInfo.balance_decimal);
+}
+async function getRate(): Promise<number> {
+  const banano = await axios.get(
+    "https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=eur"
+  );
+  const exchangeRate = banano.data.banano.eur;
+
+  return exchangeRate;
+}
