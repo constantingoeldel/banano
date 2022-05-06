@@ -14,10 +14,10 @@ jobs:
           node-version: "16"
       - name: Install dependencies
         run: npm install
-      - name: Run jest
-        run: npm run test
-      - name: Run Cypress
-        run: npm run ci
+      # - name: Run jest
+      #   run: npm run test
+      # - name: Run Cypress
+      #   run: npm run ci
       - name: Lint
         run: npm run lint
       - name: Build for production

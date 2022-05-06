@@ -27,6 +27,7 @@ export default async function paymentSucceeded(paymentIntent: string) {
 
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
+    console.log("Order " + paymentIntent + " has been processed");
     return "Success";
   } catch (error) {
     if (error instanceof ServerError) {
