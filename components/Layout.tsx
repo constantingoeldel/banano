@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useStore } from "../utils/state";
 import { Popover, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { Fragment } from "react";

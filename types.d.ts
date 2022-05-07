@@ -2,7 +2,7 @@ export type Status = {
   total: number;
   status: "good" | "bad";
   customers: number;
-  offers: {
+  offers?: {
     offer_id: string;
     source_id: string;
     name: string;

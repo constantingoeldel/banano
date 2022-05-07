@@ -1,6 +1,6 @@
 import request from "supertest";
 
-const req = request("localhost:3001");
+const req = request("localhost:3000");
 
 describe("Get checkout", () => {
   it("Rejects unauthorized requests", async () => {
@@ -18,7 +18,9 @@ describe("Get checkout", () => {
         test: true,
       });
     expect(response.status).toBe(400);
-    expect(response.body.message).toEqual("Invalid amount");
+    expect(response.body.message).toEqual(
+      "Invalid amount. Amount must be a number between 100 and 20000"
+    );
   });
   it("Rejects negative amount", async () => {
     const response = await req
@@ -30,7 +32,9 @@ describe("Get checkout", () => {
         test: true,
       });
     expect(response.status).toBe(400);
-    expect(response.body.message).toEqual("Invalid amount");
+    expect(response.body.message).toEqual(
+      "Invalid amount. Amount must be a number between 100 and 20000"
+    );
   });
   it("Rejects 0 amount", async () => {
     const response = await req
@@ -42,7 +46,9 @@ describe("Get checkout", () => {
         test: true,
       });
     expect(response.status).toBe(400);
-    expect(response.body.message).toEqual("Invalid amount");
+    expect(response.body.message).toEqual(
+      "Invalid amount. Amount must be a number between 100 and 20000"
+    );
   });
   it("Rejects too large amount", async () => {
     const response = await req
@@ -54,7 +60,9 @@ describe("Get checkout", () => {
         test: true,
       });
     expect(response.status).toBe(400);
-    expect(response.body.message).toEqual("Invalid amount");
+    expect(response.body.message).toEqual(
+      "Invalid amount. Amount must be a number between 100 and 20000"
+    );
   });
   it("Rejects missing address", async () => {
     const response = await req

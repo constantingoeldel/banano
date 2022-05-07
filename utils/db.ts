@@ -58,7 +58,7 @@ export class Database {
     const successfullOrders = await this.client
       .db()
       .collection<Order>("orders")
-      .find({ $and: [{ status: "succeeded" }, { $or: [{ test: undefined }, { test: false }] }] })
+      .find({ status: "succeeded" })
       .toArray();
     console.log("Found " + successfullOrders.length + " orders");
     return successfullOrders;

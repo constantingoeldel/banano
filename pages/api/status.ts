@@ -33,7 +33,6 @@ export async function status(): Promise<Status> {
       total: 0,
       status: "bad",
       customers: 0,
-      offers: [],
       max: 0,
       exchangeRate: 1,
     };

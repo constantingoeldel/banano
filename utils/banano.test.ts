@@ -10,13 +10,13 @@ describe("Get the current exchange rate", () => {
 describe("Transaction validation", () => {
   it("Validates a transaction", async () => {
     const result = await verifyTransaction(
-      "EE41976A6281F6E8F22B9A3EDED75C3390F16AAD727BE10981DF9F723BD89A34",
-      "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
-      150
+      "C7178AF223F429AFDBBD4811DC2E28D9075F72B66ACD35A8073B3445DB1D208F",
+      "ban_1d3rm7sq1k5jj7dqxdfqnbekw7gwrun55ti934a98cumxo78sbdq8it1jtr8",
+      5575
     );
     expect(result).toBe(true);
   });
-  it.only("Validates a transaction to itself", async () => {
+  it("Validates a transaction to itself", async () => {
     const result = await verifyTransaction(
       "73590EA067914B416DFCFDF5190FD5F996C07A2FAFA68DC5A013E6CAE46C37E5",
       "ban_3acd3zmisj5nzxn673upfecp6hbbr9snwhomyixoja17mswsju3h9rja3df3",
@@ -24,6 +24,7 @@ describe("Transaction validation", () => {
     );
     expect(result).toBe(true);
   });
+
   it("Rejects a falsy hash", async () => {
     const result = await verifyTransaction(
       "EE41976A6281F6E8F22B9A3EDED75C3390F16AAD727BE10981DF9F723BD89A37",

@@ -18,18 +18,7 @@ interface Props {
   }[];
 }
 
-export default function Form({
-  offers = [
-    {
-      offer_id: "placeholder",
-      source_id: "placeholder",
-      name: "Loading...",
-      balance: 1000,
-      rate: 1,
-    },
-  ],
-  exchangeRate_USD_EUR = 1,
-}: Props) {
+export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   // limit amount
   const [price, setPrice] = useState(0);
   const [selectedSource, setSource] = useState(0);
@@ -38,11 +27,11 @@ export default function Form({
   const [amount, setAmount] = useState<number | null>(null);
   const [step, setStep] = useState(0);
   const router = useRouter();
-
+  console.log(offers);
   const validateStep = {
     0: () => address && address.match("ban_.{60}"),
-    1: () => 0 <= selectedSource && selectedSource < offers.length,
-    2: () => amount && amount >= 100 && amount <= offers[selectedSource].balance,
+    1: () => offers && 0 <= selectedSource && selectedSource < offers.length,
+    2: () => offers && amount && amount >= 100 && amount <= offers[selectedSource].balance,
     3: () => captcha,
   };
 
@@ -50,8 +39,8 @@ export default function Form({
     0: "Please enter a valid wallet address",
     1: "Please select a source",
     2:
-      "Please enter an amount greater than 100 BAN and lower than " +
-      offers[selectedSource].balance.toFixed(0) +
+      "Please enter an amount greater than 100 BAN and lower than the sources availability" +
+      // (offers ? offers[selectedSource].balance.toFixed(0) : "1000") +
       " BAN",
     3: "Please complete the captcha",
   };
@@ -60,7 +49,7 @@ export default function Form({
 
   useEffect(() => {
     setPrice(
-      amount
+      amount && offers
         ? amount * offers[selectedSource].rate * (currency === "eur" ? 1 : exchangeRate_USD_EUR)
         : 0
     );
@@ -88,6 +77,7 @@ export default function Form({
       body: JSON.stringify({
         address,
         amount,
+        // @ts-ignore
         source: offers[selectedSource].source_id,
         currency,
         test,
@@ -181,6 +171,7 @@ export default function Form({
                     {currency.toUpperCase()}/BAN
                   </button>
                 ))}
+              {offers || <p>Everything sold out, please come back later</p>}
               <input
                 type="text"
                 name="source"
@@ -265,7 +256,7 @@ export default function Form({
           )}
         </form>
       ) : (
-        <p>There are currently no offers to display :( </p>
+        <p>There are currently no offers to display. Everything is sold out :( </p>
       )}
     </section>
   );
