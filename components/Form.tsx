@@ -5,7 +5,6 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import { FullButton } from "./Button";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
-import { type } from "os";
 
 interface Props {
   exchangeRate_USD_EUR?: number;
