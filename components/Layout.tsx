@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           <Popover>
             <div className="relative pt-6 px-4 sm:px-6 lg:px-8 ">
-              <div className="fixed -ml-10  md:hidden ">
+              <div className="absolute -ml-10  md:hidden ">
                 <Link passHref href="/">
                   <div className="">
                     <Image src="/banano-small.svg" alt="Banano logo" height={50} width={400} />
