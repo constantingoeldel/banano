@@ -17,9 +17,7 @@ interface Error {
 }
 const URL = process.env.DEV ? "https://dev.acctive.digital" : "https://ban.app";
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Redirect | Error>) {
-  console.time("checkout");
   const db = await getDB();
-  console.timeLog("checkout", "db connection");
   try {
     const authByBearer = !!req.headers.authorization;
     const authenticated =
@@ -33,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       });
       return;
     }
-    console.timeLog("checkout", "authentication");
     const amount = Number(req.body.amount);
     const test = req.body.test || false;
     const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
@@ -62,18 +59,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       getRateUSD(),
       authByBearer ? Promise.resolve(authenticated.source) : db.getSource(sourceId),
     ]);
-    console.timeLog("checkout", "get market rate");
     if (!source) {
       res.status(400).json({ message: "Source does not exist" });
       return;
     }
-    console.timeLog("checkout", "get source");
     const offer = await getOffer(source, eurRate);
     if (!offer) {
       res.status(400).json({ message: "Offer does not exist" });
       return;
     }
-    console.timeLog("checkout", "get offer");
     if (!amount || amount === NaN || amount < 100 || amount > offer.balance) {
       res.status(400).json({
         message: "Invalid amount. Amount must be a number between 100 and " + offer.balance,
@@ -82,14 +76,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return;
     }
     const exchangeRate = currency === "eur" ? 1 : usdRate / eurRate;
-    console.timeLog("checkout", "get exchange rate");
     const price = Math.ceil(amount * offer.rate * 100 * exchangeRate) + 25;
     const fee = price * 0.02 > 15 ? Math.floor(price * 0.02) : 15;
     const transferGroup = "tid_" + nanoid();
     const stripe = new stripeJs(stripeSecret, {
       apiVersion: "2020-08-27",
     });
-    console.timeLog("checkout", "create stripe instance");
     const session = await stripe.checkout.sessions.create(
       {
         line_items: [
@@ -119,7 +111,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
       { stripeAccount: source.account }
     );
-    console.timeLog("checkout", "create checkout session");
     const paymentIntent = session.payment_intent as string;
     const id = await db.addOrder(
       paymentIntent,
@@ -131,7 +122,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       price,
       !!test
     );
-    console.timeLog("checkout", "add order");
     console.log(
       "Payment intent registered: ",
       paymentIntent,
@@ -139,7 +129,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     );
 
     res.status(200).json({ message: session.url! });
-    console.timeEnd("checkout");
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong, please try again later" });

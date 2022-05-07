@@ -16,26 +16,20 @@ export async function getOffer(
   marketRate: number
 ): Promise<Offer | null> {
   try {
-    console.time("custodial");
     const marketRateInCt = marketRate * 100;
     let balance, rate;
     if (source.custodial) {
-      console.timeLog("custodial", "receive pending");
       balance = await getBalance(source.address);
-      console.timeLog("custodial", "get balance");
       rate = source.price.market
         ? marketRateInCt * source.price.margin < source.price.min
           ? source.price.min / 100
           : (marketRateInCt * source.price.margin) / 100
         : source.price.min;
-      console.timeEnd("custodial");
       receivePending(source.seed);
     } else {
-      console.time("manual");
       const offer = await fetchOffer(source.webhook, source.secret);
       balance = offer.balance;
       rate = offer.rate;
-      console.timeEnd("manual");
     }
     if (!balance || !rate) return null;
 
