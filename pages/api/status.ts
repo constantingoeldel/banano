@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Status } from "../../types";
+import { getExchangeRate } from "../../utils/banano";
 import getDB from "../../utils/db";
 import { getOffers } from "../../utils/offer";
 
@@ -13,6 +14,7 @@ export async function status(): Promise<Status> {
   console.log("Rebuilding the status cache");
   const db = await getDB();
   try {
+    const exchangeRate = await getExchangeRate();
     const customers = await db.getOrders();
     const offers = await getOffers(db);
     const total = customers.reduce((sum, order) => sum + order.amount, 0);
@@ -23,6 +25,7 @@ export async function status(): Promise<Status> {
       customers: customers.length,
       max,
       offers,
+      exchangeRate,
     };
   } catch (err) {
     console.log(err);
@@ -32,6 +35,7 @@ export async function status(): Promise<Status> {
       customers: 0,
       offers: [],
       max: 0,
+      exchangeRate: 1,
     };
   }
 }

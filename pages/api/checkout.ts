@@ -20,6 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const db = await getDB();
   try {
     console.log("Received new checkout request");
+
     const authByBearer = !!req.headers.authorization;
     const authenticated =
       authByBearer && typeof req.headers.authorization === "string"
@@ -40,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const recipient_address = req.body.address;
     const currency = req.body.currency === "usd" ? "usd" : "eur";
     const sourceId = authenticated.source ? authenticated.source.id : req.body.source;
-    console.log(recipient_address);
+    console.log(req.body.address, req.body["g-recaptcha-response"]);
     if (
       !recipient_address ||
       typeof recipient_address !== "string" ||
@@ -128,9 +129,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       paymentIntent,
       "saved as order: " + id + "\nFee: " + fee
     );
-    authByBearer
-      ? res.status(200).json({ message: session.url! })
-      : res.redirect(303, session.url!);
+
+    res.status(200).json({ message: session.url! });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong, please try again later" });

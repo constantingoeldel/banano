@@ -10,6 +10,7 @@ export type Status = {
     rate: number;
   }[];
   max: number;
+  exchangeRate: number;
 };
 
 export interface User {
