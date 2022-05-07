@@ -85,15 +85,7 @@ export default function Home({
           </div> */}
         </section>
         <section>
-          <Form
-            customers={status.customers}
-            offers={status.offers}
-            total={status.total}
-            max={status.max}
-            DEV_MODE={DEV_MODE}
-            exchangeRate_USD_EUR={status?.exchangeRate}
-          />
-          )
+          <Form offers={status?.offers} exchangeRate_USD_EUR={status?.exchangeRate} />)
         </section>
       </main>
     </Layout>

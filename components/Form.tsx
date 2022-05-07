@@ -6,67 +6,52 @@ import { FullButton } from "./Button";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 
-type Props =
-  | {
-      test: true;
-      max: number;
-      DEV_MODE: boolean;
-      exchangeRate_USD_EUR: number;
-
-      offers: {
-        offer_id: string;
-        source_id: string;
-        name: string;
-        balance: number;
-        rate: number;
-      }[];
-      total: number;
-      customers: number;
-    }
-  | {
-      test?: false;
-      max: number;
-      DEV_MODE: boolean;
-      exchangeRate_USD_EUR: number;
-      offers: {
-        offer_id: string;
-        source_id: string;
-        name: string;
-        balance: number;
-        rate: number;
-      }[];
-      total: number;
-      customers: number;
-    };
+interface Props {
+  exchangeRate_USD_EUR?: number;
+  offers?: {
+    offer_id: string;
+    source_id: string;
+    name: string;
+    balance: number;
+    rate: number;
+  }[];
+}
 
 export default function Form({
-  offers,
-  total,
-  customers,
-  max,
-  exchangeRate_USD_EUR,
-  DEV_MODE,
+  offers = [
+    {
+      offer_id: "placeholder",
+      source_id: "placeholder",
+      name: "Loading...",
+      balance: 1000,
+      rate: 1,
+    },
+  ],
+  exchangeRate_USD_EUR = 1,
 }: Props) {
+  // limit amount
   const [price, setPrice] = useState(1);
   const [selectedSource, setSource] = useState(0);
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const router = useRouter();
 
   const validateStep = {
     0: () => address && address.match("ban_.{60}"),
-    1: () => amount && amount >= 100,
-    2: () => 0 <= selectedSource && selectedSource < offers.length,
+    1: () => 0 <= selectedSource && selectedSource < offers.length,
+    2: () => amount && amount >= 100 && amount <= offers[selectedSource].balance,
     3: () => captcha,
   };
 
   const errorMessage = {
     0: "Please enter a valid wallet address",
-    1: "Please enter an amount greater than 100 BAN",
-    2: "Please select a source",
+    1: "Please select a source",
+    2:
+      "Please enter an amount greater than 100 BAN and lower than " +
+      offers[selectedSource].balance.toFixed(0) +
+      " BAN",
     3: "Please complete the captcha",
   };
   const { currency, test, setCurrency, setTest } = useStore();
@@ -168,51 +153,9 @@ export default function Form({
                 checked={test}
                 required
               />
-            </>
-           )}  */}
+              </>
+            )}  */}
           {step === 1 && (
-            <>
-              <div>
-                <h4>How much?</h4>
-                <label htmlFor="amount">Enter your desired amount of BAN</label>
-                <input
-                  type="number"
-                  onChange={(e) => setAmount(Number(e.target.value))}
-                  className="w-full mt-2 p-2 border text-dark border-dark rounded-md"
-                  id="amount"
-                  placeholder="1000"
-                  min="100"
-                  value={amount || ""}
-                  required
-                  name="amount"
-                  max={max ? max : 100000}
-                />
-              </div>
-              <h4 className="mt-4">Which currency?</h4>
-              <div className="mt-4">
-                <button
-                  type="button"
-                  className={`${currency === "eur" ? "border-banano-600" : "border-white"} ${
-                    currency === "eur" ? "text-banano-600" : "text-white"
-                  }  border-2 text-base rounded-md p-3 mr-1`}
-                  onClick={() => setCurrency("eur")}
-                >
-                  EUR
-                </button>
-                <button
-                  type="button"
-                  className={`${currency === "usd" ? "border-banano-600" : "border-white"} ${
-                    currency === "usd" ? "text-banano-600" : "text-white"
-                  }  border-2 text-base rounded-md p-3 mx-1`}
-                  onClick={() => setCurrency("usd")}
-                >
-                  USD
-                </button>
-              </div>
-              <input type="text" value={currency} name="currency" readOnly hidden />
-            </>
-          )}
-          {step === 2 && (
             <>
               <h4>Select one of these sources: </h4>
               {offers
@@ -240,6 +183,48 @@ export default function Form({
                 hidden
                 readOnly
               />
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <div>
+                <h4>How much?</h4>
+                <label htmlFor="amount">Enter your desired amount of BAN</label>
+                <input
+                  type="number"
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="w-full mt-2 p-2 border text-dark border-dark rounded-md"
+                  id="amount"
+                  placeholder="1000"
+                  min="100"
+                  value={amount || ""}
+                  required
+                  name="amount"
+                  max={offers[selectedSource].balance}
+                />
+              </div>
+              <h4 className="mt-4">Which currency?</h4>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  className={`${currency === "eur" ? "border-banano-600" : "border-white"} ${
+                    currency === "eur" ? "text-banano-600" : "text-white"
+                  }  border-2 text-base rounded-md p-3 mr-1`}
+                  onClick={() => setCurrency("eur")}
+                >
+                  EUR
+                </button>
+                <button
+                  type="button"
+                  className={`${currency === "usd" ? "border-banano-600" : "border-white"} ${
+                    currency === "usd" ? "text-banano-600" : "text-white"
+                  }  border-2 text-base rounded-md p-3 mx-1`}
+                  onClick={() => setCurrency("usd")}
+                >
+                  USD
+                </button>
+              </div>
+              <input type="text" value={currency} name="currency" readOnly hidden />
             </>
           )}
           {step === 3 && (
