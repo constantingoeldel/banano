@@ -1,23 +1,21 @@
 import { Collection, MongoClient, ObjectId, WithId } from "mongodb";
-import { CustodialSource, ManualSource, Offer, Order, User } from "../types";
+import { CustodialSource, ManualSource, Offer, Order, Source, User } from "../types";
 import { nanoid } from "nanoid";
 import { DatabaseError, ServerError } from "./errors";
 
 export class Database {
   client: MongoClient;
   connected: boolean;
-  users: Collection<User> | null;
-  sources: Collection<CustodialSource | ManualSource> | null;
-  orders: Collection<Order> | null;
+  sources: WithId<CustodialSource | ManualSource>[] | null;
+  lastSources: number | null;
 
   constructor() {
     console.log("Operating in " + process.env.NODE_ENV + " mode");
     const connectionString = process.env["MONGODB_URI_" + process.env.NODE_ENV.toUpperCase()]!;
     this.client = new MongoClient(connectionString);
     this.connected = false;
-    this.users = null;
     this.sources = null;
-    this.orders = null;
+    this.lastSources = null;
   }
   async connect() {
     if (this.connected) {
@@ -29,9 +27,6 @@ export class Database {
       await this.client.db("admin").command({ ping: 1 });
       console.log("Connected successfully to server");
       this.connected = true;
-      this.users = this.client.db().collection<User>("users");
-      this.sources = this.client.db().collection<CustodialSource | ManualSource>("sources");
-      this.orders = this.client.db().collection<Order>("orders");
       return this;
     } catch (e) {
       console.log("Failed to connect to server");
@@ -98,14 +93,14 @@ export class Database {
   }
 
   async getSource(sid: string): Promise<CustodialSource | ManualSource | null> {
-    const order = await this.client
+    const source = await this.client
       .db()
       .collection<CustodialSource | ManualSource>("sources")
       .findOne({
         id: sid,
       });
 
-    return order;
+    return source;
   }
 
   async getSourceIdByAddress(address: string) {
@@ -119,14 +114,24 @@ export class Database {
     return order?.id;
   }
 
-  async getActiveSources() {
-    const activeSources = await this.client
-      .db()
-      .collection<CustodialSource | ManualSource>("sources")
-      .find({ active: true })
-      .toArray();
+  async getActiveSources(allowStale: boolean = false) {
+    if (
+      allowStale &&
+      this.sources &&
+      this.lastSources &&
+      this.lastSources - Date.now() < 1000 * 60 * 60
+    ) {
+      return this.sources;
+    } else {
+      this.sources = await this.client
+        .db()
+        .collection<CustodialSource | ManualSource>("sources")
+        .find({ active: true })
+        .toArray();
 
-    return activeSources;
+      this.lastSources = Date.now();
+      return this.sources;
+    }
   }
 
   async updateStatus(pi: string, status: Order["status"]) {

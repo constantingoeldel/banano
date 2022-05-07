@@ -5,6 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import { FullButton } from "./Button";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
+import { type } from "os";
 
 interface Props {
   exchangeRate_USD_EUR?: number;
@@ -30,7 +31,7 @@ export default function Form({
   exchangeRate_USD_EUR = 1,
 }: Props) {
   // limit amount
-  const [price, setPrice] = useState(1);
+  const [price, setPrice] = useState(0);
   const [selectedSource, setSource] = useState(0);
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
@@ -61,7 +62,7 @@ export default function Form({
     setPrice(
       amount
         ? amount * offers[selectedSource].rate * (currency === "eur" ? 1 : exchangeRate_USD_EUR)
-        : 1
+        : 0
     );
   }, [amount, offers, selectedSource, exchangeRate_USD_EUR, currency]);
   function nextStep() {
@@ -79,7 +80,7 @@ export default function Form({
   async function proceedToCheckout() {
     const checkout = fetch("api/checkout", {
       method: "POST",
-
+      redirect: "manual",
       headers: {
         "Content-Type": "application/json",
       },
@@ -94,7 +95,11 @@ export default function Form({
       }),
     })
       .then((res) => res.json())
-      .then((body) => router.push(body.message!))
+      .then((body: { message: string }) => {
+        body.message.includes("https://checkout.stripe.com/pay/")
+          ? router.push(body.message!)
+          : toast.error(body.message);
+      })
       .catch((e) => console.error(e));
     toast.promise(checkout, {
       loading: "Redirecting to checkout...",
@@ -118,7 +123,7 @@ export default function Form({
         The current price is: <br />
         {test
           ? "0" + currencySymbol
-          : `${price && price.toFixed(2) + currencySymbol} + 0,25${currencySymbol} Stripe fees`}
+          : `${price.toFixed(2) + currencySymbol} + 0.25${currencySymbol} Stripe fees`}
       </p>
       {offers && offers[0] ? (
         <form className="mt-5" action="/api/checkout" method="POST">
