@@ -85,7 +85,7 @@ export default function Home({
           </div> */}
         </section>
         <section>
-          <Form offers={status?.offers} exchangeRate_USD_EUR={status?.exchangeRate} />)
+          <Form offers={status?.offers} exchangeRate_USD_EUR={status?.exchangeRate} />
         </section>
       </main>
     </Layout>
