@@ -60,6 +60,7 @@ export class Database {
       .collection<Order>("orders")
       .find({ status: "succeeded" })
       .toArray();
+    console.log("here");
     console.log("Found " + successfullOrders.length + " orders");
     return successfullOrders;
   }
@@ -163,7 +164,9 @@ export class Database {
     address: string,
     amount: number,
     price: number,
-    test: boolean
+    test: boolean,
+    currency: "eur" | "usd",
+    chain: "banano" | "nano"
   ) {
     const order: Order = {
       version: process.env.VERSION || "0.0.0",
@@ -177,6 +180,8 @@ export class Database {
       price,
       status: "open",
       test,
+      currency,
+      chain,
     };
     const { insertedId } = await this.client.db().collection<Order>("orders").insertOne(order);
     return insertedId;

@@ -27,8 +27,16 @@ export default async function paymentSucceeded(paymentIntent: string) {
 
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
-    console.log("Order " + paymentIntent + " has been processed");
-    sendMail("Order " + paymentIntent + " has been processed");
+    console.log("Order " + paymentIntent + " has been processed", order.amount, order.currency);
+    sendMail(
+      "Order " +
+        paymentIntent +
+        " has been processed. " +
+        order.amount +
+        " " +
+        order.chain +
+        " have been transferred."
+    );
     return "Success";
   } catch (error) {
     if (error instanceof ServerError) {
@@ -73,8 +81,8 @@ export default async function paymentSucceeded(paymentIntent: string) {
       try {
         // const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
         db.patchOrder(order.paymentIntent, { hash: hash });
+        await db.updateStatus(order.paymentIntent, "succeeded");
         if (order.test) {
-          await db.updateStatus(order.paymentIntent, "succeeded");
           // console.log("Not post-processing payment because test mode is on");
           sendMail(
             "Successfully handled a test payment. Test payments are currently free of charge for users so you won't receive any compensation for this transaction. If you want to disable test payments, contact me.",

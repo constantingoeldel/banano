@@ -7,7 +7,7 @@ describe("Get the current exchange rate", () => {
   });
 });
 
-describe("Transaction validation", () => {
+describe.skip("Transaction validation", () => {
   it("Validates a transaction", async () => {
     const result = await verifyTransaction(
       "C7178AF223F429AFDBBD4811DC2E28D9075F72B66ACD35A8073B3445DB1D208F",
@@ -53,16 +53,16 @@ describe("Transaction validation", () => {
   });
 });
 
-describe("Send BAN", () => {
+describe.skip("Send BAN", () => {
   it("Sends BAN", async () => {
-    await receivePending(process.env.SEED!);
+    await receivePending(process.env.BANANO_SEED!);
 
     const hash = await sendBanano(
       1,
       "ban_18cs318fp9dgqhqy6or3pdebrkgkqifyodwxwymg1jcpxdskow7qq9bej7hb",
       process.env.SEED!
     );
-    await receivePending(process.env.SEED!);
+    await receivePending(process.env.BANANO_SEED!);
     const result = await verifyTransaction(
       hash,
       "ban_18cs318fp9dgqhqy6or3pdebrkgkqifyodwxwymg1jcpxdskow7qq9bej7hb",

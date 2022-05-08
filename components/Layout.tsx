@@ -3,11 +3,11 @@ import Link from "next/link";
 import { Popover, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { Fragment } from "react";
-import CurrencyToggle from "./CurrencyToggle";
+import { ChainToggle } from "./Toggle";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative bg-white overflow-hidden text-dark">
+    <div className="relative bg-white overflow-hidden text-dark break-words">
       <div className="max-w-7xl mx-auto">
         <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20  lg:w-full lg:pb-28 xl:pb-32">
           {/* <svg
@@ -69,7 +69,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         <option value="eur">EUR</option>
                         <option value="usd">USD</option>
                       </select> */}
-                      <CurrencyToggle />
+                      <ChainToggle />
                     </div>
                   </header>
                 </div>
@@ -106,7 +106,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/test">Test payment</Link> */}
                       <Link href={"/dashboard"}>To my dashboard</Link>
                       <div className="py-5"></div>
-                      <CurrencyToggle />
+                      <ChainToggle />
                       <div className="py-5"></div>
                     </header>
                   </div>
