@@ -110,7 +110,7 @@ export class Database {
     return await this.client
       .db()
       .collection<ManualSource | CustodialSource>("sources")
-      .findOne({ address: account });
+      .findOne({ account: account });
   }
 
   async getSourceIdByAddress(address: string) {
