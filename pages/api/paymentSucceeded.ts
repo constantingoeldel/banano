@@ -1,4 +1,4 @@
-import { sendBanano, verifyTransaction } from "../../utils/banano";
+import { sendBanano, sendNano, verifyTransaction } from "../../utils/banano";
 import axios, { AxiosResponse } from "axios";
 import { refund, transfer } from "../../utils/stripe";
 import { sendMail } from "../../utils/mail";
@@ -130,7 +130,10 @@ export default async function paymentSucceeded(paymentIntent: string) {
     let hash: string;
     try {
       if (order.source.custodial) {
-        hash = await sendBanano(order.amount, order.address, order.source.seed);
+        hash =
+          order.source.chain === "banano"
+            ? await sendBanano(order.amount, order.address, order.source.seed)
+            : await sendNano(order.amount, order.address, order.source.seed);
         hash &&
           console.log(
             "Successfully payed! Now sending " +
