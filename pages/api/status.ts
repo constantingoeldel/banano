@@ -28,7 +28,6 @@ export async function status(): Promise<Status> {
       exchangeRate,
     };
   } catch (err) {
-    console.log(err);
     return {
       total: 0,
       status: "bad",

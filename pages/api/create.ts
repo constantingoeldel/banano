@@ -12,7 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (
       typeof req.query.email === "string" &&
       validator.isEmail(req.query.email) &&
-      typeof req.query.name === "string"
+      typeof req.query.name === "string" &&
+      (req.query.chain === "banano" || req.query.chain === "nano")
     ) {
       if (req.query.method === "custodial") {
         if (
@@ -21,11 +22,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           typeof req.query.margin === "string" &&
           validator.isNumeric(req.query.margin)
         ) {
-          const redirectURL = await create(db, true, req.query.name, req.query.email, undefined, {
-            min: Number(req.query.min),
-            margin: Number(req.query.margin),
-            market: req.query.market === "on",
-          });
+          const redirectURL = await create(
+            db,
+            true,
+            req.query.name,
+            req.query.email,
+            req.query.chain,
+            undefined,
+            {
+              min: Number(req.query.min),
+              margin: Number(req.query.margin),
+              market: req.query.market === "on",
+            }
+          );
           res.redirect(redirectURL);
           return;
         }
@@ -40,6 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             false,
             req.query.name,
             req.query.email,
+            req.query.chain,
             req.query.webhook
           );
           res.redirect(redirectURL);
@@ -59,6 +69,7 @@ async function create(
   custodial: boolean,
   name: string,
   email: string,
+  chain: "banano" | "nano",
   webhook?: string,
   price?: Price
 ) {
@@ -87,6 +98,7 @@ async function create(
   const baseSource: Source = {
     id: "sid_" + id,
     secret: "secret_" + nanoid(),
+    chain,
     email,
     name,
     account: account.id,
@@ -101,7 +113,7 @@ async function create(
     price?.min > 0 &&
     typeof price?.market === "boolean"
   ) {
-    const { seed, address } = await generateNewAccount();
+    const { seed, address } = await generateNewAccount(chain);
     const source: CustodialSource = {
       ...baseSource,
       custodial: true,

@@ -4,7 +4,20 @@ import axios from "axios";
 import { randomBytes } from "crypto";
 import { Block, Order, Transaction } from "../types";
 
-banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
+const setBanano = () => {
+  banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
+};
+const setNano = () => {
+  banano.setBananodeApiUrl("https://mynano.ninja/api/node");
+};
+
+function nano(callback: Function) {
+  banano.setBananodeApiUrl("https://mynano.ninja/api/node");
+  const response = callback();
+  banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
+  return response;
+}
+setNano();
 export async function getRateEUR(): Promise<number> {
   const banano = await axios.get(
     "https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=eur"
@@ -46,7 +59,24 @@ export async function sendBanano(amount: number, recipient: string, seed: string
     );
   });
 }
-
+export async function sendNano(amount: number, recipient: string, seed: string): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    const rawAmount = banano.getRawStrFromNanoStr(String(amount));
+    // const balance = await getBalance(process.env.ADDRESS!);
+    // balance - amount < 3000 &&
+    //   sendMail("balance is low: current balance is " + (balance - amount) + " BAN");
+    banano.sendAmountToNanoAccount(
+      seed,
+      0,
+      recipient,
+      rawAmount,
+      (hash: string) => {
+        console.log("Transaction hash:", hash), resolve(hash);
+      },
+      (error: any) => reject(error)
+    );
+  });
+}
 export async function verifyTransaction(
   hash: string,
   recipient: string,
@@ -87,13 +117,25 @@ export async function getBalance(account: string) {
   return Math.floor(accountInfo.balance_decimal);
 }
 
-export async function receivePending(seed: string) {
-  await banano.receiveBananoDepositsForSeed(seed, 0, process.env.REPRESENTATIVE);
+export async function receivePending(seed: string, chain: string) {
+  chain === "banano"
+    ? await banano.receiveBananoDepositsForSeed(seed, 0, process.env.BANANO_REPRESENTATIVE!)
+    : await banano.receiveNanoDepositsForSeed(seed, 0, process.env.NANO_REPRESENTATIVE!);
 }
 
-export async function getBalances(accounts: string[] = [process.env.ADDRESS!]) {
+export async function getBalances(accounts: string[] = [process.env.ADDRESS!], chain: string) {
   await banano.getAccountsPending(accounts, accounts.length - 1);
-  await banano.receiveBananoDepositsForSeed(process.env.SEED, 0, process.env.REPRESENTATIVE);
+  chain === "banano"
+    ? await banano.receiveBananoDepositsForSeed(
+        process.env.BANANO_SEED,
+        0,
+        process.env.BANANO_REPRESENTATIVE
+      )
+    : await banano.receiveNanoDepositsForSeed(
+        process.env.NANO_SEED,
+        0,
+        process.env.NANO_REPRESENTATIVE
+      );
 
   const balances = accounts.map(async (acc) => {
     const accountInfo = await banano.getAccountInfo(acc);
@@ -103,17 +145,38 @@ export async function getBalances(accounts: string[] = [process.env.ADDRESS!]) {
   return await Promise.all(balances);
 }
 
-export async function generateNewAccount(): Promise<{ seed: string; address: string }> {
+export async function generateNewAccount(
+  chain: "banano" | "nano"
+): Promise<{ seed: string; address: string }> {
   const seed = randomBytes(32).toString("hex");
-  const address = await banano.getBananoAccountFromSeed(seed, 0);
-  const hash = await sendBanano(0.0001, address, process.env.SEED!);
-  banano.openBananoAccountFromSeed(
-    seed,
-    0,
-    process.env.REPRESENTATIVE,
-    hash,
-    banano.getRawStrFromBananoStr("0.0001")
-  );
+  const address =
+    chain === "banano"
+      ? await banano.getBananoAccountFromSeed(seed, 0)
+      : await banano.getNanoAccountFromSeed(seed, 0);
+  console.log(address);
+  const hash =
+    chain === "banano"
+      ? await sendBanano(0.0001, address, process.env.BANANO_SEED!)
+      : await nano(() => sendNano(0.0001, address, process.env.NANO_SEED!));
+  console.log(hash);
+
+  chain === "banano"
+    ? banano.openBananoAccountFromSeed(
+        seed,
+        0,
+        process.env.BANANO_REPRESENTATIVE,
+        hash,
+        banano.getRawStrFromBananoStr("0.0001")
+      )
+    : nano(
+        banano.openNanoAccountFromSeed(
+          seed,
+          0,
+          process.env.NANO_REPRESENTATIVE,
+          hash,
+          banano.getRawStrFromNanoStr("0.0001")
+        )
+      );
   return { seed, address };
 }
 
@@ -122,8 +185,18 @@ interface History {
   history: Transaction[];
 }
 
-export async function confirmAccount(account: string): Promise<boolean> {
-  await banano.receiveBananoDepositsForSeed(process.env.SEED, 0, process.env.REPRESENTATIVE);
+export async function confirmAccount(account: string, chain: string): Promise<boolean> {
+  chain === "banano"
+    ? await banano.receiveBananoDepositsForSeed(
+        process.env.BANANO_SEED,
+        0,
+        process.env.BANANO_REPRESENTATIVE
+      )
+    : await banano.receiveNanoDepositsForSeed(
+        process.env.NANO_SEED,
+        0,
+        process.env.NANO_REPRESENTATIVE
+      );
   const history: History = await banano.getAccountHistory(account, -1);
 
   const confirmingTX = history.history.find((tx: Transaction) => {
@@ -134,7 +207,9 @@ export async function confirmAccount(account: string): Promise<boolean> {
     );
   });
   if (confirmingTX) {
-    sendBanano(0.01, account, process.env.SEED!);
+    chain === "banano"
+      ? sendBanano(0.01, account, process.env.BANANO_SEED!)
+      : sendNano(0.01, account, process.env.NANO_SEED!);
   }
   return !!confirmingTX;
 }

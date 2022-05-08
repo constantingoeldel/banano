@@ -5,16 +5,11 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import { FullButton } from "./Button";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
+import { Offer } from "../types";
 
 interface Props {
   exchangeRate_USD_EUR?: number;
-  offers?: {
-    offer_id: string;
-    source_id: string;
-    name: string;
-    balance: number;
-    rate: number;
-  }[];
+  offers?: Offer[];
 }
 
 export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
@@ -26,7 +21,6 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   const [amount, setAmount] = useState<number | null>(null);
   const [step, setStep] = useState(0);
   const router = useRouter();
-  console.log(offers);
   const validateStep = {
     0: () => address && address.match("ban_.{60}"),
     1: () => offers && 0 <= selectedSource && selectedSource < offers.length,
@@ -43,7 +37,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
       " BAN",
     3: "Please complete the captcha",
   };
-  const { currency, test, setCurrency, setTest } = useStore();
+  const { currency, test, setCurrency, setTest, chain } = useStore();
   const currencySymbol = currency === "eur" ? "€" : "$";
 
   useEffect(() => {
@@ -153,6 +147,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
             <>
               <h4>Select one of these sources: </h4>
               {offers
+                .filter((o) => o.chain === chain)
                 .sort((a, b) => a.rate - b.rate)
                 .map((source, index) => (
                   <button

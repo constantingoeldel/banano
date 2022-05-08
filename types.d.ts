@@ -2,13 +2,7 @@ export type Status = {
   total: number;
   status: "good" | "bad";
   customers: number;
-  offers?: {
-    offer_id: string;
-    source_id: string;
-    name: string;
-    balance: number;
-    rate: number;
-  }[];
+  offers?: Offer[];
   max: number;
   exchangeRate: number;
 };
@@ -26,6 +20,7 @@ export interface Offer {
   name: string;
   balance: number;
   rate: number;
+  chain: "banano" | "nano";
 }
 
 export interface OfferResponse {
@@ -39,6 +34,7 @@ export interface Source {
   active: boolean;
   name: string;
   secret: string;
+  chain: "banano" | "nano";
   account: string;
 }
 
