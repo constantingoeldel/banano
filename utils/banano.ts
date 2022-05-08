@@ -64,6 +64,7 @@ export async function sendBanano(amount: number, recipient: string, seed: string
   });
 }
 export async function sendNano(amount: number, recipient: string, seed: string): Promise<string> {
+  setNano();
   return new Promise(async (resolve, reject) => {
     const rawAmount = banano.getRawStrFromNanoStr(String(amount));
     // const balance = await getBalance(process.env.ADDRESS!);
