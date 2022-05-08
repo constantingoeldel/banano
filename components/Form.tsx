@@ -36,10 +36,8 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   const errorMessage = {
     0: "Please enter a valid wallet address",
     1: offers ? "Please select a source" : "No offers available. Please come back later",
-    2:
-      "Please enter an amount greater than 100 BAN and lower than the sources availability" +
-      // (offers ? offers[selectedSource].balance.toFixed(0) : "1000") +
-      " BAN",
+    2: "Please enter an amount greater than 100 BAN and lower than the sources availability",
+    // (offers ? offers[selectedSource].balance.toFixed(0) : "1000")
     3: "Please complete the captcha",
   };
   const { currency, test, setCurrency, setTest } = useStore();
