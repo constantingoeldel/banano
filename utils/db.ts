@@ -103,6 +103,16 @@ export class Database {
 
     return source;
   }
+  async activateSource(account: string) {
+    await this.client
+      .db()
+      .collection<Source>("sources")
+      .updateOne({ address: account }, { $set: { active: true } });
+    return await this.client
+      .db()
+      .collection<ManualSource | CustodialSource>("sources")
+      .findOne({ address: account });
+  }
 
   async getSourceIdByAddress(address: string) {
     const order = await this.client
