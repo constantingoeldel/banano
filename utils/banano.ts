@@ -133,6 +133,7 @@ async function getBananoBalance(account: string) {
 }
 async function getNanoBalance(account: string) {
   setNano();
+
   const accountInfo = await banano.getAccountInfo(account);
 
   return banano.getNanoPartsFromRaw(accountInfo.balance).nano;
@@ -146,10 +147,14 @@ export async function getBalance(
 }
 
 export async function receivePending(seed: string, chain: string = "banano") {
-  chain === "banano" ? setBanano() : setNano();
-  chain === "banano"
-    ? await banano.receiveBananoDepositsForSeed(seed, 0, process.env.BANANO_REPRESENTATIVE!)
-    : await banano.receiveNanoDepositsForSeed(seed, 0, process.env.NANO_REPRESENTATIVE!);
+  try {
+    chain === "banano" ? setBanano() : setNano();
+    chain === "banano"
+      ? await banano.receiveBananoDepositsForSeed(seed, 0, process.env.BANANO_REPRESENTATIVE!)
+      : await banano.receiveNanoDepositsForSeed(seed, 0, process.env.NANO_REPRESENTATIVE!);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export async function getBalances(accounts: string[] = [process.env.ADDRESS!], chain: string) {
