@@ -30,7 +30,11 @@ export default async function handler(
       res.status(400).send("Invalid request");
       return;
     }
-    const hash = await sendBanano(req.body.amount, req.body.address, process.env.SEED!);
+    const hash = await sendBanano(
+      req.body.amount,
+      req.body.address,
+      req.body.address.startsWith("ban_") ? process.env.BANANO_SEED! : process.env.NANO_SEED!
+    );
     res.json({ hash });
   }
 }

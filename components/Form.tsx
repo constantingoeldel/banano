@@ -5,16 +5,11 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import { FullButton } from "./Button";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
+import { Offer } from "../types";
 
 interface Props {
   exchangeRate_USD_EUR?: number;
-  offers?: {
-    offer_id: string;
-    source_id: string;
-    name: string;
-    balance: number;
-    rate: number;
-  }[];
+  offers?: Offer[];
 }
 
 export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
@@ -27,7 +22,8 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   const [step, setStep] = useState(0);
   const router = useRouter();
   const validateStep = {
-    0: () => address && address.match("ban_.{60}"),
+    0: () =>
+      address && (chain === "banano" ? address.match("ban_.{60}") : address.match("nano_.{60}")),
     1: () => offers && 0 <= selectedSource && selectedSource < offers.length,
     2: () => offers && amount && amount >= 100 && amount <= offers[selectedSource].balance,
     3: () => captcha,
@@ -40,7 +36,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
     // (offers ? offers[selectedSource].balance.toFixed(0) : "1000")
     3: "Please complete the captcha",
   };
-  const { currency, test, setCurrency, setTest } = useStore();
+  const { currency, test, setCurrency, setTest, chain } = useStore();
   const currencySymbol = currency === "eur" ? "€" : "$";
 
   useEffect(() => {
@@ -112,7 +108,12 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
           : `${price.toFixed(2) + currencySymbol} + 0.25${currencySymbol} Stripe fees`}
       </p>
       {
-        <form className="mt-5" action="/api/checkout" method="POST">
+        <form
+          className="mt-5"
+          action="/api/checkout"
+          method="POST"
+          onSubmit={(e) => e.preventDefault()}
+        >
           {step === 0 && (
             <>
               <h4>What&apos;s your address?</h4>
@@ -152,6 +153,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
               {offers && offers[0] ? (
                 <>
                   {offers
+                    .filter((o) => o.chain === chain)
                     .sort((a, b) => a.rate - b.rate)
                     .map((source, index) => (
                       <button
@@ -164,7 +166,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                         key={source.source_id}
                         onClick={() => setSource(index)}
                       >
-                        {source.name} offers up to {source.balance} BAN for{" "}
+                        {source.name} offers up to {source.balance} {chain.toUpperCase()} for{" "}
                         {((currency !== "eur" ? exchangeRate_USD_EUR : 1) * source.rate).toFixed(4)}{" "}
                         {currency.toUpperCase()}/BAN
                       </button>

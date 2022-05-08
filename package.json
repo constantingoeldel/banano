@@ -17,6 +17,7 @@
     "@heroicons/react": "^1.0.6",
     "@sendgrid/mail": "^7.6.2",
     "@stripe/stripe-js": "^1.27.0",
+    "@tailwindcss/forms": "^0.5.1",
     "@types/react-google-recaptcha": "^2.1.5",
     "axios": "^0.26.1",
     "dotenv": "^16.0.0",

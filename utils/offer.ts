@@ -36,6 +36,7 @@ export async function getOffer(
     return {
       source_id: source.id,
       offer_id: "oid_" + nanoid(),
+      chain: source.chain,
       balance,
       rate,
       name: source.name,
