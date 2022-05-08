@@ -170,7 +170,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                     {currency.toUpperCase()}/BAN
                   </button>
                 ))}
-              {offers || <p>Everything sold out, please come back later</p>}
+              {offers ? null : <p>Everything sold out, please come back later</p>}
               <input
                 type="text"
                 name="source"
