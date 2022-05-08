@@ -2,7 +2,9 @@ import paymentSucceeded from "./paymentSucceeded";
 import stripeJs from "stripe";
 import { NextApiRequest, NextApiResponse } from "next";
 import { buffer, json } from "micro";
-import { sendMail } from "../../utils/mail";
+import { custodialUnboarding, manualUnboarding, sendMail } from "../../utils/mail";
+import getDB from "../../utils/db";
+import { assert } from "console";
 
 export const config = {
   api: {
@@ -24,17 +26,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 export async function handleWebhook(event: stripeJs.Event) {
   switch (event.type) {
-    // case "application_fee.created":
-    //   console.log(event);
-    //   // @ts-expect-error
-    //   const charge = event.data.object.id.charge;
-    //   try {
-    //     pi && typeof pi === "string" && (await paymentSucceeded(pi));
-    //     return 200;
-    //   } catch (error) {
-    //     console.error(error);
-    //     return 500;
-    //   }
+    case "account.external_account.created":
+      try {
+        if (event.account) {
+          console.log("Created Source account for: ", event.account);
+          const db = await getDB();
+          const source = await db.activateSource(event.account);
+          if (source) {
+            source.custodial
+              ? await sendMail(custodialUnboarding(source), source.email, true)
+              : await sendMail(manualUnboarding(source), source.email, true);
+          }
+        }
+        return 200;
+      } catch (err) {
+        console.log(err);
+        return 500;
+      }
     case "payment_intent.succeeded":
       // @ts-expect-error
       const paymentIntent = event.data.object.id;
