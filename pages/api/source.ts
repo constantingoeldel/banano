@@ -11,9 +11,9 @@ export default async function handler(
       res.status(401).send("Unauthorized");
       return;
     }
-    const address = process.env.ADDRESS!;
+    const address = process.env.NANO_ADDRESS!;
     const margin = 1.02;
-    const balance = await getBalance(address);
+    const balance = await getBalance(address, "nano");
     let rate = (await getRateEUR()) * margin;
     res.json({ balance, rate });
   } else if (req.method === "POST") {
@@ -44,7 +44,7 @@ export async function getUserVisibleSource(id: string) {
   const source = await db.getSource(id);
   if (!source) return null;
   if (source.custodial) {
-    const balance = await getBalance(source.address);
+    const balance = await getBalance(source.address, source.chain);
     return {
       active: source.active,
       name: source.name,
@@ -52,6 +52,7 @@ export async function getUserVisibleSource(id: string) {
       address: source.address,
       price: source.price,
       balance,
+      chain: source.chain || "banano",
     };
   } else {
     return {

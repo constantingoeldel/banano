@@ -105,7 +105,6 @@ async function create(
     active: false,
   };
   console.log("Adding new source with baseSource", baseSource);
-  console.log(price);
   if (
     price?.margin &&
     price?.margin > 0 &&

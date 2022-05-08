@@ -20,24 +20,31 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   const [address, setAddress] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [step, setStep] = useState(0);
+  const { currency, test, setCurrency, setTest, chain } = useStore();
+  const currencySymbol = currency === "eur" ? "€" : "$";
   const router = useRouter();
   const validateStep = {
     0: () =>
       address && (chain === "banano" ? address.match("ban_.{60}") : address.match("nano_.{60}")),
     1: () => offers && 0 <= selectedSource && selectedSource < offers.length,
-    2: () => offers && amount && amount >= 100 && amount <= offers[selectedSource].balance,
+    2: () =>
+      offers &&
+      amount &&
+      amount >= (chain === "banano" ? 100 : 1) &&
+      amount <= offers[selectedSource].balance,
     3: () => captcha,
   };
 
   const errorMessage = {
     0: "Please enter a valid wallet address",
     1: offers ? "Please select a source" : "No offers available. Please come back later",
-    2: "Please enter an amount greater than 100 BAN and lower than the sources availability",
+    2:
+      "Please enter an amount greater than " +
+      (chain === "banano" ? "100 BAN" : "1 XNO") +
+      " and lower than the sources availability",
     // (offers ? offers[selectedSource].balance.toFixed(0) : "1000")
     3: "Please complete the captcha",
   };
-  const { currency, test, setCurrency, setTest, chain } = useStore();
-  const currencySymbol = currency === "eur" ? "€" : "$";
 
   useEffect(() => {
     setPrice(
@@ -73,6 +80,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
         source: offers[selectedSource].source_id,
         currency,
         test,
+        chain,
         "g-recaptcha-response": captcha,
       }),
     })
@@ -122,12 +130,11 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                 className="w-full mt-2 p-2 border text-dark border-dark rounded-md"
                 type="text"
                 id="address"
-                placeholder="ban_1224...."
+                placeholder={chain === "banano" ? "ban_1224...." : "nano_1224...."}
                 required
                 onChange={(e) => setAddress(e.target.value)}
                 value={address || ""}
                 name="address"
-                pattern="ban_.{60}"
               />
             </>
           )}
@@ -168,7 +175,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                       >
                         {source.name} offers up to {source.balance} {chain.toUpperCase()} for{" "}
                         {((currency !== "eur" ? exchangeRate_USD_EUR : 1) * source.rate).toFixed(4)}{" "}
-                        {currency.toUpperCase()}/BAN
+                        {currency.toUpperCase()}/{chain.toUpperCase()}
                       </button>
                     ))}
                   <input
@@ -188,14 +195,14 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
             <>
               <div>
                 <h4>How much?</h4>
-                <label htmlFor="amount">Enter your desired amount of BAN</label>
+                <label htmlFor="amount">Enter your desired amount of {chain.toUpperCase()}</label>
                 <input
                   type="number"
                   onChange={(e) => setAmount(Number(e.target.value))}
                   className="w-full mt-2 p-2 border text-dark border-dark rounded-md"
                   id="amount"
                   placeholder="1000"
-                  min="100"
+                  min={chain === "banano" ? 100 : 1}
                   value={amount || ""}
                   required
                   name="amount"
@@ -225,6 +232,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                 </button>
               </div>
               <input type="text" value={currency} name="currency" readOnly hidden />
+              <input type="text" value={chain} name="chain" readOnly hidden />
             </>
           )}
           {step === 3 && (

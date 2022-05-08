@@ -19,20 +19,20 @@ export async function getOffer(
     const marketRateInCt = marketRate * 100;
     let balance, rate;
     if (source.custodial) {
-      balance = await getBalance(source.address);
+      balance = await getBalance(source.address, source.chain);
       rate = source.price.market
         ? marketRateInCt * source.price.margin < source.price.min
           ? source.price.min / 100
           : (marketRateInCt * source.price.margin) / 100
         : source.price.min;
-      receivePending(source.seed);
+      receivePending(source.seed, source.chain);
     } else {
       const offer = await fetchOffer(source.webhook, source.secret);
       balance = offer.balance;
       rate = offer.rate;
     }
+    console.log("Account: ", source.account, "Balance: " + balance, "Rate: " + rate);
     if (!balance || !rate) return null;
-
     return {
       source_id: source.id,
       offer_id: "oid_" + nanoid(),
@@ -48,9 +48,12 @@ export async function getOffer(
 
 export async function getOffers(db: Database) {
   try {
-    const marketRate = await getRateEUR();
+    const marketRateBAN = await getRateEUR("banano");
+    const marketRateNANO = await getRateEUR("nano");
     const activeSources = await db.getActiveSources(true);
-    const offers = activeSources.map((source) => getOffer(source, marketRate));
+    const offers = activeSources.map((source) =>
+      getOffer(source, source.chain === "banano" ? marketRateBAN : marketRateNANO)
+    );
     const offersWithData = await Promise.all(offers);
     // Why won't typescipt allow a filter here?
     const offersWithDataFiltered = offersWithData.flatMap((offer) => (offer ? [offer] : []));

@@ -15,15 +15,16 @@ export async function status(): Promise<Status> {
   const db = await getDB();
   try {
     const exchangeRate = await getExchangeRate();
-    const customers = await db.getOrders();
+    // const customers = await db.getOrders();
     const offers = await getOffers(db);
-    const total = customers.reduce((sum, order) => sum + order.amount, 0);
-    const max = offers.reduce((sum, source) => sum + source.balance, 0);
+    // const total = customers.reduce((sum, order) => sum + order.amount, 0);
+    // const max = offers.reduce((sum, source) => sum + source.balance, 0);
+    console.log(offers);
     return {
-      total,
+      total: 100000,
       status: "good",
-      customers: customers.length,
-      max,
+      customers: 20,
+      max: 1000,
       offers,
       exchangeRate,
     };

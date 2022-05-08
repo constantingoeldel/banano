@@ -1,4 +1,4 @@
-import { sendBanano, verifyTransaction } from "../../utils/banano";
+import { sendBanano, sendNano, verifyTransaction } from "../../utils/banano";
 import axios, { AxiosResponse } from "axios";
 import { refund, transfer } from "../../utils/stripe";
 import { sendMail } from "../../utils/mail";
@@ -27,8 +27,16 @@ export default async function paymentSucceeded(paymentIntent: string) {
 
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
-    console.log("Order " + paymentIntent + " has been processed");
-    sendMail("Order " + paymentIntent + " has been processed");
+    console.log("Order " + paymentIntent + " has been processed", order.amount, order.currency);
+    sendMail(
+      "Order " +
+        paymentIntent +
+        " has been processed. " +
+        order.amount +
+        " " +
+        order.chain +
+        " have been transferred."
+    );
     return "Success";
   } catch (error) {
     if (error instanceof ServerError) {
@@ -68,13 +76,13 @@ export default async function paymentSucceeded(paymentIntent: string) {
     }
   }
   async function verifyAndProcess(db: Database, hash: string, order: Order) {
-    const valid = await verifyTransaction(hash, order.address, order.amount);
+    const valid = await verifyTransaction(hash, order.address, order.amount, order.chain);
     if (valid) {
       try {
         // const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
         db.patchOrder(order.paymentIntent, { hash: hash });
+        await db.updateStatus(order.paymentIntent, "succeeded");
         if (order.test) {
-          await db.updateStatus(order.paymentIntent, "succeeded");
           // console.log("Not post-processing payment because test mode is on");
           sendMail(
             "Successfully handled a test payment. Test payments are currently free of charge for users so you won't receive any compensation for this transaction. If you want to disable test payments, contact me.",
@@ -122,7 +130,10 @@ export default async function paymentSucceeded(paymentIntent: string) {
     let hash: string;
     try {
       if (order.source.custodial) {
-        hash = await sendBanano(order.amount, order.address, order.source.seed);
+        hash =
+          order.source.chain === "banano"
+            ? await sendBanano(order.amount, order.address, order.source.seed)
+            : await sendNano(order.amount, order.address, order.source.seed);
         hash &&
           console.log(
             "Successfully payed! Now sending " +
