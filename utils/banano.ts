@@ -133,7 +133,6 @@ async function getBananoBalance(account: string) {
 async function getNanoBalance(account: string) {
   setNano();
   const accountInfo = await banano.getAccountInfo(account);
-  console.log(accountInfo);
 
   return banano.getNanoPartsFromRaw(accountInfo.balance).nano;
 }
