@@ -73,7 +73,9 @@ You sell your BAN at a minimum of ${source.price.min} cents, after which you ${
     : "with a margin of" + (source.price.margin * 100 - 100) + "%"
 }. Let me know if you want to change those (a dashboard will come soon)
 
-To get started, simply send some ${source.chain.toUpperCase()} to your new address. Very excited to have you,
+To get started, simply send some ${
+  /*source.chain.toUpperCase()*/ "BAN"
+} to your new address. Very excited to have you,
 
 Constantin
 `;
