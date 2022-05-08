@@ -76,7 +76,7 @@ export default async function paymentSucceeded(paymentIntent: string) {
     }
   }
   async function verifyAndProcess(db: Database, hash: string, order: Order) {
-    const valid = await verifyTransaction(hash, order.address, order.amount);
+    const valid = await verifyTransaction(hash, order.address, order.amount, order.chain);
     if (valid) {
       try {
         // const price_after_fees = order.test ? 1 : order.price - 25 - order.price * 0.05;
