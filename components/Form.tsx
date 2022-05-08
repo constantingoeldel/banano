@@ -26,7 +26,6 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   const [amount, setAmount] = useState<number | null>(null);
   const [step, setStep] = useState(0);
   const router = useRouter();
-  console.log(offers);
   const validateStep = {
     0: () => address && address.match("ban_.{60}"),
     1: () => offers && 0 <= selectedSource && selectedSource < offers.length,
@@ -36,7 +35,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
 
   const errorMessage = {
     0: "Please enter a valid wallet address",
-    1: "Please select a source",
+    1: offers ? "Please select a source" : "No offers available. Please come back later",
     2:
       "Please enter an amount greater than 100 BAN and lower than the sources availability" +
       // (offers ? offers[selectedSource].balance.toFixed(0) : "1000") +
@@ -114,7 +113,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
           ? "0" + currencySymbol
           : `${price.toFixed(2) + currencySymbol} + 0.25${currencySymbol} Stripe fees`}
       </p>
-      {offers && offers[0] ? (
+      {
         <form className="mt-5" action="/api/checkout" method="POST">
           {step === 0 && (
             <>
@@ -152,32 +151,37 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
           {step === 1 && (
             <>
               <h4>Select one of these sources: </h4>
-              {offers
-                .sort((a, b) => a.rate - b.rate)
-                .map((source, index) => (
-                  <button
-                    type="button"
-                    className={`${
-                      index === selectedSource ? "border-banano-600" : "border-white"
-                    } ${
-                      index === selectedSource ? "text-banano-600" : "text-white"
-                    }  border-2 text-base rounded-md p-3 my-2`}
-                    key={source.source_id}
-                    onClick={() => setSource(index)}
-                  >
-                    {source.name} offers up to {source.balance} BAN for{" "}
-                    {((currency !== "eur" ? exchangeRate_USD_EUR : 1) * source.rate).toFixed(4)}{" "}
-                    {currency.toUpperCase()}/BAN
-                  </button>
-                ))}
-              {offers ? null : <p>Everything sold out, please come back later</p>}
-              <input
-                type="text"
-                name="source"
-                value={offers[selectedSource].source_id}
-                hidden
-                readOnly
-              />
+              {offers && offers[0] ? (
+                <>
+                  {offers
+                    .sort((a, b) => a.rate - b.rate)
+                    .map((source, index) => (
+                      <button
+                        type="button"
+                        className={`${
+                          index === selectedSource ? "border-banano-600" : "border-white"
+                        } ${
+                          index === selectedSource ? "text-banano-600" : "text-white"
+                        }  border-2 text-base rounded-md p-3 my-2`}
+                        key={source.source_id}
+                        onClick={() => setSource(index)}
+                      >
+                        {source.name} offers up to {source.balance} BAN for{" "}
+                        {((currency !== "eur" ? exchangeRate_USD_EUR : 1) * source.rate).toFixed(4)}{" "}
+                        {currency.toUpperCase()}/BAN
+                      </button>
+                    ))}
+                  <input
+                    type="text"
+                    name="source"
+                    value={offers[selectedSource].source_id}
+                    hidden
+                    readOnly
+                  />
+                </>
+              ) : (
+                <p>Everything sold out, please come back later</p>
+              )}
             </>
           )}
           {step === 2 && (
@@ -195,6 +199,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                   value={amount || ""}
                   required
                   name="amount"
+                  // @ts-ignore - can't be reached when offers don't exist
                   max={offers[selectedSource].balance}
                 />
               </div>
@@ -254,9 +259,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
             </>
           )}
         </form>
-      ) : (
-        <p>There are currently no offers to display. Everything is sold out :( </p>
-      )}
+      }
     </section>
   );
 }

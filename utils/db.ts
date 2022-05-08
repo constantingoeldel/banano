@@ -25,7 +25,7 @@ export class Database {
     try {
       this.client = await this.client.connect();
       await this.client.db("admin").command({ ping: 1 });
-      console.log("Connected successfully to server");
+      console.log("Connected successfully to database");
       this.connected = true;
       return this;
     } catch (e) {

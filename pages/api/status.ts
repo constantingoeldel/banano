@@ -24,7 +24,7 @@ export async function status(): Promise<Status> {
       status: "good",
       customers: customers.length,
       max,
-      offers,
+      // offers,
       exchangeRate,
     };
   } catch (err) {
