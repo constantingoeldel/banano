@@ -20,12 +20,13 @@ export async function getOffer(
     let balance, rate;
     if (source.custodial) {
       balance = await getBalance(source.address);
+      console.log("balance:", balance);
       rate = source.price.market
         ? marketRateInCt * source.price.margin < source.price.min
           ? source.price.min / 100
           : (marketRateInCt * source.price.margin) / 100
         : source.price.min;
-      receivePending(source.seed);
+      receivePending(source.seed, source.chain);
     } else {
       const offer = await fetchOffer(source.webhook, source.secret);
       balance = offer.balance;

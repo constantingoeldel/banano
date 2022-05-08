@@ -127,7 +127,6 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                 onChange={(e) => setAddress(e.target.value)}
                 value={address || ""}
                 name="address"
-                pattern="ban_.{60}"
               />
             </>
           )}

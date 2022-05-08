@@ -17,7 +17,7 @@ function nano(callback: Function) {
   banano.setBananodeApiUrl("https://kaliumapi.appditto.com/api");
   return response;
 }
-setNano();
+setBanano();
 export async function getRateEUR(): Promise<number> {
   const banano = await axios.get(
     "https://api.coingecko.com/api/v3/simple/price?ids=banano&vs_currencies=eur"
