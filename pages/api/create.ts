@@ -20,8 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           typeof req.query.min === "string" &&
           validator.isNumeric(req.query.min) &&
           typeof req.query.margin === "string" &&
-          validator.isNumeric(req.query.margin) &&
-          req.query.chain === "banano"
+          validator.isNumeric(req.query.margin)
         ) {
           const redirectURL = await create(
             db,
@@ -39,11 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           res.redirect(redirectURL);
           return;
         }
-        res.status(400).json({
-          error:
-            "At the moment, only self-hosted nano-accounts are supported. Please got to https://ban.app/source to sign up. ",
-        });
-        return;
       } else if (req.query.method === "manual") {
         console.log("Creating manual source");
         if (

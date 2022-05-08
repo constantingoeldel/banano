@@ -60,6 +60,7 @@ export class Database {
       .collection<Order>("orders")
       .find({ status: "succeeded" })
       .toArray();
+    console.log("here");
     console.log("Found " + successfullOrders.length + " orders");
     return successfullOrders;
   }

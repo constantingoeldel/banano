@@ -38,12 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const currency = req.body.currency === "usd" ? "usd" : "eur";
     const chain = req.body.chain === "nano" ? "nano" : "banano";
     const sourceId = authenticated.source ? authenticated.source.id : req.body.source;
+    console.log(recipient_address, req.body.chain);
     if (
       !recipient_address ||
       typeof recipient_address !== "string" ||
-      !recipient_address.match("ban_.{60}")
+      (chain === "banano"
+        ? !recipient_address.match("ban_.{60}")
+        : !recipient_address.match("nano_.{60}"))
     ) {
-      res.status(400).json({ message: "Invalid address. Please provide a valid ban address" });
+      res.status(400).json({
+        message: "Invalid address. Please provide a valid " + chain.toUpperCase() + " address",
+      });
       return;
     }
     if (!sourceId || typeof sourceId !== "string") {
@@ -69,7 +74,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       res.status(400).json({ message: "Offer does not exist" });
       return;
     }
-    if (!amount || amount === NaN || amount < 100 || amount > offer.balance) {
+    if (
+      !amount ||
+      amount === NaN ||
+      amount < (chain === "banano" ? 100 : 1) ||
+      amount > offer.balance
+    ) {
       res.status(400).json({
         message: "Invalid amount. Amount must be a number between 100 and " + offer.balance,
       });
@@ -90,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             price_data: {
               currency: currency,
               product_data: {
-                name: amount + " Bananos",
+                name: amount + chain === "banano" ? " Bananos" : " Nano",
                 description: test
                   ? "Test the system with the card 4242 4242 4242 4242, any date in the future and any 3-digit code."
                   : "Price is the amount of bananos times the current exchange rate.",

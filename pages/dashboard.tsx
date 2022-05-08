@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Layout from "../components/Layout";
 import { Price, Purchase } from "../types";
-import { getBalance } from "../utils/banano";
 import { withIronSessionSsr } from "iron-session/next";
 import { ironOptions } from "../utils/auth";
 import { NextPageContext } from "next";
