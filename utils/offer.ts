@@ -25,6 +25,7 @@ export async function getOffer(
           ? source.price.min / 100
           : (marketRateInCt * source.price.margin) / 100
         : source.price.min;
+      console.log(balance, rate);
       receivePending(source.seed);
     } else {
       const offer = await fetchOffer(source.webhook, source.secret);
