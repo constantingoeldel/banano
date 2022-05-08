@@ -21,7 +21,7 @@ async function loginRoute(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const user = (await db.getUserByAddress(address)) || (await db.createUser(address));
-    const confirmed = await confirmAccount(address);
+    const confirmed = await confirmAccount(address, address.startsWith("ban_") ? "banano" : "nano");
     console.log("Confirmation of user with account " + address + ": " + confirmed);
 
     if (confirmed) {

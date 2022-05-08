@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const stripeSecret = test ? process.env.STRIPE_TEST_SECRET! : process.env.STRIPE_SECRET!;
     const recipient_address = req.body.address;
     const currency = req.body.currency === "usd" ? "usd" : "eur";
+    const chain = req.body.chain === "nano" ? "nano" : "banano";
     const sourceId = authenticated.source ? authenticated.source.id : req.body.source;
     if (
       !recipient_address ||
@@ -120,7 +121,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       recipient_address,
       amount,
       price,
-      !!test
+      !!test,
+      currency,
+      chain
     );
     console.log(
       "Payment intent registered: ",

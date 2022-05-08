@@ -52,6 +52,7 @@ export async function getUserVisibleSource(id: string) {
       address: source.address,
       price: source.price,
       balance,
+      chain: source.chain || "banano",
     };
   } else {
     return {
