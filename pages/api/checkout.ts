@@ -101,10 +101,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             price_data: {
               currency: currency,
               product_data: {
-                name: amount + chain === "banano" ? " Bananos" : " Nano",
+                name: amount + (chain === "banano" ? " Bananos" : " Nano"),
                 description: test
                   ? "Test the system with the card 4242 4242 4242 4242, any date in the future and any 3-digit code."
-                  : "Price is the amount of bananos times the current exchange rate.",
+                  : "Price is the amount of " + chain + " times the sources exchange rate.",
               },
 
               unit_amount: price,
