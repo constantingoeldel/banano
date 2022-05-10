@@ -94,8 +94,17 @@ export default async function paymentSucceeded(paymentIntent: string) {
           );
         } else {
           sendMail(
-            "Successfully handled payment. Check your dashboard for the transaction details.",
-            order.source.email
+            "Successfully handled payment. " +
+              order.amount +
+              " " +
+              order.chain +
+              "have been sent, you receive " +
+              order.price / 100 +
+              " " +
+              order.currency +
+              " Check your dashboard for the transaction details.",
+            order.source.email,
+            true
           );
           //   "Transaction is valid and confirmed! Charging " +
           //     (order.price - price_after_fees) +
