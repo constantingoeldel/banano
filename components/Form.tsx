@@ -161,7 +161,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                   {offers
                     .filter((o) => o.chain === chain)
                     .sort((a, b) => a.rate - b.rate)
-                    .map((source, index) => (
+                    .map((source) => (
                       <button
                         type="button"
                         className={`${

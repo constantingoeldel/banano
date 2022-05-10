@@ -147,7 +147,9 @@ export default async function paymentSucceeded(paymentIntent: string) {
           console.log(
             "Successfully payed! Now sending " +
               order.amount +
-              " bananos to " +
+              " " +
+              order.chain +
+              " to " +
               order.address +
               " with hash " +
               hash
