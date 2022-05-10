@@ -45,12 +45,13 @@ export async function getExchangeRate() {
 }
 
 export async function sendBanano(amount: number, recipient: string, seed: string): Promise<string> {
+  console.log("Trying to send " + amount + " bananos to " + recipient);
   setBanano();
   return new Promise(async (resolve, reject) => {
     const rawAmount = banano.getRawStrFromBananoStr(String(amount));
     // const balance = await getBalance(process.env.ADDRESS!);
     // balance - amount < 3000 &&
-    //   sendMail("balance is low: current balance is " + (balance - amount) + " BAN");
+    //   sendMail("balance is low: current balanc e is " + (balance - amount) + " BAN");
     banano.sendAmountToBananoAccount(
       seed,
       0,
@@ -63,7 +64,9 @@ export async function sendBanano(amount: number, recipient: string, seed: string
     );
   });
 }
+
 export async function sendNano(amount: number, recipient: string, seed: string): Promise<string> {
+  console.log("Trying to send " + amount + " nano to " + recipient);
   setNano();
   return new Promise(async (resolve, reject) => {
     const rawAmount = banano.getRawStrFromNanoStr(String(amount));
