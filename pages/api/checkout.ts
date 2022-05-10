@@ -51,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       });
       return;
     }
+
     if (!sourceId || typeof sourceId !== "string") {
       res.status(400).json({ message: "No source id provided" });
       return;
@@ -70,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return;
     }
     const offer = await getOffer(source, eurRate);
-    if (!offer) {
+    if (!offer || !(offer.chain === chain)) {
       res.status(400).json({ message: "Offer does not exist" });
       return;
     }

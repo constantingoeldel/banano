@@ -27,7 +27,11 @@ export default async function paymentSucceeded(paymentIntent: string) {
 
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
-    console.log("Order " + paymentIntent + " has been processed", order.amount, order.currency);
+    console.log(
+      "Order " + paymentIntent + " has been processed",
+      order.amount / 100,
+      order.currency
+    );
     sendMail(
       "Order " +
         paymentIntent +

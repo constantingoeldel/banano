@@ -150,6 +150,13 @@ export async function getBalance(
 }
 
 export async function receivePending(seed: string, chain: string = "banano") {
+  console.log(
+    "Trying to receive pending transactions for: ",
+    seed,
+    chain,
+    process.env.NANO_REPRESENTATIVE
+  );
+
   try {
     chain === "banano" ? setBanano() : setNano();
     chain === "banano"
@@ -160,28 +167,28 @@ export async function receivePending(seed: string, chain: string = "banano") {
   }
 }
 
-export async function getBalances(accounts: string[] = [process.env.ADDRESS!], chain: string) {
-  chain === "banano" ? setBanano() : setNano();
-  await banano.getAccountsPending(accounts, accounts.length - 1);
-  chain === "banano"
-    ? await banano.receiveBananoDepositsForSeed(
-        process.env.BANANO_SEED,
-        0,
-        process.env.BANANO_REPRESENTATIVE
-      )
-    : await banano.receiveNanoDepositsForSeed(
-        process.env.NANO_SEED,
-        0,
-        process.env.NANO_REPRESENTATIVE
-      );
+// export async function getBalances(accounts: string[] = [process.env.ADDRESS!], chain: string) {
+//   chain === "banano" ? setBanano() : setNano();
+//   await banano.getAccountsPending(accounts, accounts.length - 1);
+//   chain === "banano"
+//     ? await banano.receiveBananoDepositsForSeed(
+//         process.env.BANANO_SEED,
+//         0,
+//         process.env.BANANO_REPRESENTATIVE
+//       )
+//     : await banano.receiveNanoDepositsForSeed(
+//         process.env.NANO_SEED,
+//         0,
+//         process.env.NANO_REPRESENTATIVE
+//       );
 
-  const balances = accounts.map(async (acc) => {
-    const accountInfo = await banano.getAccountInfo(acc);
-    const balance = Math.floor(accountInfo.balance_decimal);
-    return balance;
-  });
-  return await Promise.all(balances);
-}
+//   const balances = accounts.map(async (acc) => {
+//     const accountInfo = await banano.getAccountInfo(acc);
+//     const balance = Math.floor(accountInfo.balance_decimal);
+//     return balance;
+//   });
+//   return await Promise.all(balances);
+// }
 
 export async function generateNewAccount(
   chain: "banano" | "nano"

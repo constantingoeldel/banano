@@ -13,19 +13,21 @@ export async function fetchOffer(url: string, secret: string) {
 
 export async function getOffer(
   source: CustodialSource | ManualSource,
-  marketRate: number
+  marketRate: number,
+  quick: boolean = false
 ): Promise<Offer | null> {
   try {
     const marketRateInCt = marketRate * 100;
     let balance, rate;
     if (source.custodial) {
+      quick || (await receivePending(source.seed, source.chain));
       balance = await getBalance(source.address, source.chain);
       rate = source.price.market
         ? marketRateInCt * source.price.margin < source.price.min
           ? source.price.min / 100
           : (marketRateInCt * source.price.margin) / 100
         : source.price.min;
-      receivePending(source.seed, source.chain);
+      quick && receivePending(source.seed, source.chain);
     } else {
       const offer = await fetchOffer(source.webhook, source.secret);
       balance = offer.balance;
