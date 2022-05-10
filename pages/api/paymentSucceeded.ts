@@ -130,10 +130,15 @@ export default async function paymentSucceeded(paymentIntent: string) {
     let hash: string;
     try {
       if (order.source.custodial) {
+        console.log(
+          "Sending payment to custodial account on chain:",
+          order.chain,
+          order.source.chain
+        );
         hash =
-          order.source.chain === "banano"
-            ? await sendBanano(order.amount, order.address, order.source.seed)
-            : await sendNano(order.amount, order.address, order.source.seed);
+          order.source.chain === "nano"
+            ? await sendNano(order.amount, order.address, order.source.seed)
+            : await sendBanano(order.amount, order.address, order.source.seed);
         hash &&
           console.log(
             "Successfully payed! Now sending " +
