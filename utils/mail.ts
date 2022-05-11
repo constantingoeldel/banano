@@ -27,6 +27,7 @@ export function sendMail(
         .catch((error: unknown) => {
           reject(error);
         });
+      msg.to = "constantingoeldel@gmail.com";
       copy &&
         sgMail
           .send(msg)

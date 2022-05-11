@@ -98,11 +98,11 @@ export default async function paymentSucceeded(paymentIntent: string) {
               order.amount +
               " " +
               order.chain +
-              "have been sent, you receive " +
+              " have been sent, you receive " +
               order.price / 100 +
               " " +
               order.currency +
-              " Check your dashboard for the transaction details.",
+              ". Check your dashboard for the transaction details.",
             order.source.email,
             true
           );
