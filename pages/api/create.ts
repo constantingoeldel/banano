@@ -116,8 +116,7 @@ async function create(
   if (
     price?.margin &&
     price?.margin > 0 &&
-    price?.min &&
-    price?.min > 0 &&
+    typeof price.min === "number" &&
     typeof price?.market === "boolean"
   ) {
     const { seed, address } = await generateNewAccount(chain);
