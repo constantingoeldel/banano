@@ -89,6 +89,11 @@ async function create(
   const account = await stripe.accounts.create({
     type: "express",
     email: email,
+    capabilities: {
+      card_payments: {
+        requested: true,
+      },
+    },
     business_type: "individual",
     business_profile: {
       url: "https://ban.app/source/" + id,
