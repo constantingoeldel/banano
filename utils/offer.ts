@@ -33,7 +33,6 @@ export async function getOffer(
       balance = offer.balance;
       rate = offer.rate;
     }
-    console.log("Account: ", source.account, "Balance: " + balance, "Rate: " + rate);
     if (!balance || !rate) return null;
     return {
       source_id: source.id,

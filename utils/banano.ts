@@ -150,13 +150,6 @@ export async function getBalance(
 }
 
 export async function receivePending(seed: string, chain: string = "banano") {
-  console.log(
-    "Trying to receive pending transactions for: ",
-    seed,
-    chain,
-    process.env.NANO_REPRESENTATIVE
-  );
-
   try {
     chain === "banano" ? setBanano() : setNano();
     chain === "banano"
