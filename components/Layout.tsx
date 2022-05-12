@@ -4,6 +4,7 @@ import { Popover, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { Fragment } from "react";
 import { ChainToggle } from "./Toggle";
+import Script from 'next/script'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -116,6 +117,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Popover>
 
           {children}
+          <Script src="//code.tidio.co/zuigqjgj3hkww91lrmecg50kquvy0vjo.js" strategy="afterInteractive" />
         </div>
       </div>
     </div>
