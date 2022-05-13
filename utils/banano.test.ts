@@ -7,7 +7,7 @@ describe("Get the current exchange rate", () => {
   });
 });
 
-describe.skip("Transaction validation", () => {
+describe("Transaction validation", () => {
   it("Validates a transaction", async () => {
     const result = await verifyTransaction(
       "C7178AF223F429AFDBBD4811DC2E28D9075F72B66ACD35A8073B3445DB1D208F",
@@ -53,7 +53,7 @@ describe.skip("Transaction validation", () => {
   });
 });
 
-describe.skip("Send BAN", () => {
+describe("Send BAN", () => {
   it("Sends BAN", async () => {
     await receivePending(process.env.BANANO_SEED!);
 

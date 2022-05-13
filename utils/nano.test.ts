@@ -27,22 +27,22 @@ describe("Transaction validation", () => {
   });
 });
 
-describe.only("Send Nano", () => {
-  it("Sends BAN", async () => {
+describe("Send Nano", () => {
+  it("Sends Nano", async () => {
     setNano();
 
     await receivePending(process.env.NANO_SEED!, "nano");
     console.log("got to sending");
     const hash = await sendNano(
       1,
-      "nano_1a5oubw4gmgqfxigpxhnkyfodkctncp84momjgtjn73s34k9eb7j8hbcn3cg",
+      "nano_1tirutm5br89nj77y1p4bqgasm876pogwza8u9zb8a7uyyd4p1yajfe18bhr",
       process.env.NANO_SEED!
     );
     console.log("got to verifying");
     await receivePending(process.env.NANO_SEED!, "nano");
     const result = await verifyTransaction(
       hash,
-      "nano_1a5oubw4gmgqfxigpxhnkyfodkctncp84momjgtjn73s34k9eb7j8hbcn3cg",
+      "nano_1tirutm5br89nj77y1p4bqgasm876pogwza8u9zb8a7uyyd4p1yajfe18bhr",
       1,
       "nano"
     );
