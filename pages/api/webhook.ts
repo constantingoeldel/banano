@@ -29,16 +29,18 @@ export async function handleWebhook(event: stripeJs.Event) {
     case "account.external_account.created":
       try {
         if (event.account) {
-          console.log("Created Source account for: ", event.account);
           const db = await getDB();
           const source = await db.activateSource(event.account);
           if (source) {
             source.custodial
               ? await sendMail(custodialUnboarding(source), source.email, true)
               : await sendMail(manualUnboarding(source), source.email, true);
+          } else {
+            console.log("Source not found");
           }
+          console.log("Created Source account for: ", event.account);
+          return 200;
         }
-        return 200;
       } catch (err) {
         console.log(err);
         return 500;

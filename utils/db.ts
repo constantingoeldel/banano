@@ -60,7 +60,6 @@ export class Database {
       .collection<Order>("orders")
       .find({ status: "succeeded" })
       .toArray();
-    console.log("here");
     console.log("Found " + successfullOrders.length + " orders");
     return successfullOrders;
   }
@@ -107,11 +106,11 @@ export class Database {
     await this.client
       .db()
       .collection<Source>("sources")
-      .updateOne({ address: account }, { $set: { active: true } });
+      .updateOne({ account: account }, { $set: { active: true } });
     return await this.client
       .db()
       .collection<ManualSource | CustodialSource>("sources")
-      .findOne({ address: account });
+      .findOne({ account: account });
   }
 
   async getSourceIdByAddress(address: string) {

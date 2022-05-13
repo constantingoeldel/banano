@@ -89,6 +89,14 @@ async function create(
   const account = await stripe.accounts.create({
     type: "express",
     email: email,
+    capabilities: {
+      card_payments: {
+        requested: true,
+      },
+      transfers: {
+        requested: true,
+      },
+    },
     business_type: "individual",
     business_profile: {
       url: "https://ban.app/source/" + id,
@@ -108,8 +116,7 @@ async function create(
   if (
     price?.margin &&
     price?.margin > 0 &&
-    price?.min &&
-    price?.min > 0 &&
+    typeof price.min === "number" &&
     typeof price?.market === "boolean"
   ) {
     const { seed, address } = await generateNewAccount(chain);

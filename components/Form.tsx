@@ -5,7 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/outline";
 import { FullButton } from "./Button";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
-import { Offer } from "../types";
+import { Offer, Source } from "../types";
 
 interface Props {
   exchangeRate_USD_EUR?: number;
@@ -15,7 +15,7 @@ interface Props {
 export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   // limit amount
   const [price, setPrice] = useState(0);
-  const [selectedSource, setSource] = useState(0);
+  const [selectedOffer, setOffer] = useState<Offer | null>(null);
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
@@ -23,15 +23,21 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
   const { currency, test, setCurrency, setTest, chain } = useStore();
   const currencySymbol = currency === "eur" ? "€" : "$";
   const router = useRouter();
+
+  const unsubChain = useStore.subscribe(
+    (state) => state.chain,
+    () => setStep(0)
+  );
+
   const validateStep = {
     0: () =>
       address && (chain === "banano" ? address.match("ban_.{60}") : address.match("nano_.{60}")),
-    1: () => offers && 0 <= selectedSource && selectedSource < offers.length,
+    1: () => selectedOffer,
     2: () =>
-      offers &&
+      selectedOffer &&
       amount &&
       amount >= (chain === "banano" ? 100 : 1) &&
-      amount <= offers[selectedSource].balance,
+      amount <= selectedOffer.balance,
     3: () => captcha,
   };
 
@@ -48,11 +54,11 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
 
   useEffect(() => {
     setPrice(
-      amount && offers
-        ? amount * offers[selectedSource].rate * (currency === "eur" ? 1 : exchangeRate_USD_EUR)
+      amount && selectedOffer
+        ? amount * selectedOffer.rate * (currency === "eur" ? 1 : exchangeRate_USD_EUR)
         : 0
     );
-  }, [amount, offers, selectedSource, exchangeRate_USD_EUR, currency]);
+  }, [amount, offers, selectedOffer, exchangeRate_USD_EUR, currency]);
   function nextStep() {
     // @ts-expect-error Step can't be outside of range because of the division modulo step-length, but typescript doesn't know that
     if (validateStep[step]()) {
@@ -77,7 +83,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
         address,
         amount,
         // @ts-ignore
-        source: offers[selectedSource].source_id,
+        source: selectedOffer.source_id,
         currency,
         test,
         chain,
@@ -109,12 +115,18 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
       <div onClick={nextStep} className="absolute right-4 bottom-4">
         <FullButton>{step === 3 ? "Checkout" : "Next"} </FullButton>
       </div>
-      <p className=" absolute bottom-4 left-4">
-        The current price is: <br />
-        {test
-          ? "0" + currencySymbol
-          : `${price.toFixed(2) + currencySymbol} + 0.25${currencySymbol} Stripe fees`}
-      </p>
+
+      <div className=" absolute bottom-4 left-4">
+        {selectedOffer && amount && (
+          <p>
+            The current price is: <br />
+            {test
+              ? "0" + currencySymbol
+              : `${price.toFixed(2) + currencySymbol} + 0.25${currencySymbol} Stripe fees`}
+          </p>
+        )}
+      </div>
+
       {
         <form
           className="mt-5"
@@ -125,7 +137,9 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
           {step === 0 && (
             <>
               <h4>What&apos;s your address?</h4>
-              <label htmlFor="address">Enter the account we&apos;ll send your BAN to</label>
+              <label htmlFor="address">
+                Enter the account we&apos;ll send your {chain.toLocaleUpperCase()} to
+              </label>
               <input
                 className="w-full mt-2 p-2 border text-dark border-dark rounded-md"
                 type="text"
@@ -138,40 +152,29 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
               />
             </>
           )}
-          {/* {step === 3 && (
-            <>
-               change to two buttons 
-              <h4>Do you want to test the system?</h4>
-              <label htmlFor="test">Test Mode: </label>
-              <input
-                onClick={() => useStore.setState((state) => ({ ...state, test: !state.test }))}
-                className="mx-2 my-1"
-                type="checkbox"
-                id="test"
-                name="test"
-                checked={test}
-                required
-              />
-              </>
-            )}  */}
+
           {step === 1 && (
             <>
               <h4>Select one of these sources: </h4>
-              {offers && offers[0] ? (
+              {offers && offers.find((o) => o.chain === chain) ? (
                 <>
                   {offers
                     .filter((o) => o.chain === chain)
                     .sort((a, b) => a.rate - b.rate)
-                    .map((source, index) => (
+                    .map((source) => (
                       <button
                         type="button"
                         className={`${
-                          index === selectedSource ? "border-banano-600" : "border-white"
+                          source.offer_id === selectedOffer?.offer_id
+                            ? "border-banano-600"
+                            : "border-white"
                         } ${
-                          index === selectedSource ? "text-banano-600" : "text-white"
+                          source.offer_id === selectedOffer?.offer_id
+                            ? "text-banano-600"
+                            : "text-white"
                         }  border-2 text-base rounded-md p-3 my-2`}
                         key={source.source_id}
-                        onClick={() => setSource(index)}
+                        onClick={() => setOffer(source)}
                       >
                         {source.name} offers up to {source.balance} {chain.toUpperCase()} for{" "}
                         {((currency !== "eur" ? exchangeRate_USD_EUR : 1) * source.rate).toFixed(4)}{" "}
@@ -181,7 +184,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                   <input
                     type="text"
                     name="source"
-                    value={offers[selectedSource].source_id}
+                    value={selectedOffer?.source_id}
                     hidden
                     readOnly
                   />
@@ -207,7 +210,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                   required
                   name="amount"
                   // @ts-ignore - can't be reached when offers don't exist
-                  max={offers[selectedSource].balance}
+                  max={selectedOffer.balance}
                 />
               </div>
               <h4 className="mt-4">Which currency?</h4>

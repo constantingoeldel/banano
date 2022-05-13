@@ -45,12 +45,13 @@ export async function getExchangeRate() {
 }
 
 export async function sendBanano(amount: number, recipient: string, seed: string): Promise<string> {
+  console.log("Trying to send " + amount + " bananos to " + recipient);
   setBanano();
   return new Promise(async (resolve, reject) => {
     const rawAmount = banano.getRawStrFromBananoStr(String(amount));
     // const balance = await getBalance(process.env.ADDRESS!);
     // balance - amount < 3000 &&
-    //   sendMail("balance is low: current balance is " + (balance - amount) + " BAN");
+    //   sendMail("balance is low: current balanc e is " + (balance - amount) + " BAN");
     banano.sendAmountToBananoAccount(
       seed,
       0,
@@ -63,7 +64,9 @@ export async function sendBanano(amount: number, recipient: string, seed: string
     );
   });
 }
+
 export async function sendNano(amount: number, recipient: string, seed: string): Promise<string> {
+  console.log("Trying to send " + amount + " nano to " + recipient);
   setNano();
   return new Promise(async (resolve, reject) => {
     const rawAmount = banano.getRawStrFromNanoStr(String(amount));
@@ -133,8 +136,8 @@ async function getBananoBalance(account: string) {
 }
 async function getNanoBalance(account: string) {
   setNano();
+
   const accountInfo = await banano.getAccountInfo(account);
-  console.log(accountInfo);
 
   return banano.getNanoPartsFromRaw(accountInfo.balance).nano;
 }
@@ -147,34 +150,38 @@ export async function getBalance(
 }
 
 export async function receivePending(seed: string, chain: string = "banano") {
-  chain === "banano" ? setBanano() : setNano();
-  chain === "banano"
-    ? await banano.receiveBananoDepositsForSeed(seed, 0, process.env.BANANO_REPRESENTATIVE!)
-    : await banano.receiveNanoDepositsForSeed(seed, 0, process.env.NANO_REPRESENTATIVE!);
+  try {
+    chain === "banano" ? setBanano() : setNano();
+    chain === "banano"
+      ? await banano.receiveBananoDepositsForSeed(seed, 0, process.env.BANANO_REPRESENTATIVE!)
+      : await banano.receiveNanoDepositsForSeed(seed, 0, process.env.NANO_REPRESENTATIVE!);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-export async function getBalances(accounts: string[] = [process.env.ADDRESS!], chain: string) {
-  chain === "banano" ? setBanano() : setNano();
-  await banano.getAccountsPending(accounts, accounts.length - 1);
-  chain === "banano"
-    ? await banano.receiveBananoDepositsForSeed(
-        process.env.BANANO_SEED,
-        0,
-        process.env.BANANO_REPRESENTATIVE
-      )
-    : await banano.receiveNanoDepositsForSeed(
-        process.env.NANO_SEED,
-        0,
-        process.env.NANO_REPRESENTATIVE
-      );
+// export async function getBalances(accounts: string[] = [process.env.ADDRESS!], chain: string) {
+//   chain === "banano" ? setBanano() : setNano();
+//   await banano.getAccountsPending(accounts, accounts.length - 1);
+//   chain === "banano"
+//     ? await banano.receiveBananoDepositsForSeed(
+//         process.env.BANANO_SEED,
+//         0,
+//         process.env.BANANO_REPRESENTATIVE
+//       )
+//     : await banano.receiveNanoDepositsForSeed(
+//         process.env.NANO_SEED,
+//         0,
+//         process.env.NANO_REPRESENTATIVE
+//       );
 
-  const balances = accounts.map(async (acc) => {
-    const accountInfo = await banano.getAccountInfo(acc);
-    const balance = Math.floor(accountInfo.balance_decimal);
-    return balance;
-  });
-  return await Promise.all(balances);
-}
+//   const balances = accounts.map(async (acc) => {
+//     const accountInfo = await banano.getAccountInfo(acc);
+//     const balance = Math.floor(accountInfo.balance_decimal);
+//     return balance;
+//   });
+//   return await Promise.all(balances);
+// }
 
 export async function generateNewAccount(
   chain: "banano" | "nano"

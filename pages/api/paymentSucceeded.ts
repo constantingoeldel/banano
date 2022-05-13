@@ -27,7 +27,11 @@ export default async function paymentSucceeded(paymentIntent: string) {
 
     const hash = order.hash || (await pay(order));
     await verifyAndProcess(db, hash, order);
-    console.log("Order " + paymentIntent + " has been processed", order.amount, order.currency);
+    console.log(
+      "Order " + paymentIntent + " has been processed",
+      order.amount / 100,
+      order.currency
+    );
     sendMail(
       "Order " +
         paymentIntent +
@@ -90,8 +94,17 @@ export default async function paymentSucceeded(paymentIntent: string) {
           );
         } else {
           sendMail(
-            "Successfully handled payment. Check your dashboard for the transaction details.",
-            order.source.email
+            "Successfully handled payment. " +
+              order.amount +
+              " " +
+              order.chain +
+              " have been sent, you receive " +
+              order.price / 100 +
+              " " +
+              order.currency +
+              ". Check your dashboard for the transaction details.",
+            order.source.email,
+            true
           );
           //   "Transaction is valid and confirmed! Charging " +
           //     (order.price - price_after_fees) +
@@ -130,15 +143,22 @@ export default async function paymentSucceeded(paymentIntent: string) {
     let hash: string;
     try {
       if (order.source.custodial) {
+        console.log(
+          "Sending payment to custodial account on chain:",
+          order.chain,
+          order.source.chain
+        );
         hash =
-          order.source.chain === "banano"
-            ? await sendBanano(order.amount, order.address, order.source.seed)
-            : await sendNano(order.amount, order.address, order.source.seed);
+          order.source.chain === "nano"
+            ? await sendNano(order.amount, order.address, order.source.seed)
+            : await sendBanano(order.amount, order.address, order.source.seed);
         hash &&
           console.log(
             "Successfully payed! Now sending " +
               order.amount +
-              " bananos to " +
+              " " +
+              order.chain +
+              " to " +
               order.address +
               " with hash " +
               hash
