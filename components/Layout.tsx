@@ -4,7 +4,7 @@ import { Popover, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { Fragment } from "react";
 import { ChainToggle } from "./Toggle";
-import Script from 'next/script'
+import Script from "next/script";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -58,7 +58,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       {/* <Link href="/">Purchase BAN</Link>
 
           <Link href="/test">Test payment</Link> */}
-                      <Link href={"/dashboard"}>To my dashboard</Link>
+                      <Link href={"/source"}>
+                        <a className=" underline">Offer your own</a>
+                      </Link>
+                      <div className="mr-5"></div>
+                      <Link href={"/dashboard"}>
+                        <a className=" underline">To my dashboard</a>
+                      </Link>
                       {/* <label className="hidden">Do you want to use USD or EUR?</label>
                       <select
                         onChange={(e) => useStore.setState({ currency: e.target.value })}
@@ -105,6 +111,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       {/* <Link href="/">Purchase BAN</Link>
 
           <Link href="/test">Test payment</Link> */}
+                      <Link href={"/source"}>Offer your own</Link>
                       <Link href={"/dashboard"}>To my dashboard</Link>
                       <div className="py-5"></div>
                       <ChainToggle />
@@ -117,7 +124,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Popover>
 
           {children}
-          <Script src="//code.tidio.co/zuigqjgj3hkww91lrmecg50kquvy0vjo.js" strategy="afterInteractive" />
+          <Script
+            src="//code.tidio.co/zuigqjgj3hkww91lrmecg50kquvy0vjo.js"
+            strategy="afterInteractive"
+          />
         </div>
       </div>
     </div>
