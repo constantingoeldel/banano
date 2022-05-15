@@ -22,7 +22,6 @@ export async function getOffer(
     if (source.custodial) {
       quick || (await receivePending(source.seed, source.chain));
       balance = await getBalance(source.address, source.chain);
-      console.log(balance);
       rate = source.price.market
         ? marketRateInCt * source.price.margin < source.price.min
           ? source.price.min / 100

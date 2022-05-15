@@ -152,7 +152,6 @@ export async function getBalance(
 }
 
 export async function receivePending(seed: string, chain: string = "banano") {
-  console.log("Trying to receive pending", chain);
   try {
     chain === "banano" ? setBanano() : setNano();
     chain === "banano"

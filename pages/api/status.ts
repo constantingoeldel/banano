@@ -20,7 +20,6 @@ export async function status(): Promise<Status> {
       offer.chain === "banano" ? offer.balance >= 100 : offer.balance >= 1
     );
 
-    console.log(offers);
     return {
       total: 100000,
       status: "good",
