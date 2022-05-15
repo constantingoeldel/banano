@@ -6,6 +6,7 @@ import { FullButton } from "./Button";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 import { Offer, Source } from "../types";
+import Link from "next/link";
 
 interface Props {
   exchangeRate_USD_EUR?: number;
@@ -267,7 +268,12 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                 sitekey="6Lc80lofAAAAAPHm6vZA4AcKTuikKCfLYkSe7Ajc"
                 onChange={(token) => (token ? setCaptcha(token) : setCaptcha(null))}
               />
-              {/* Add agb */}
+              <p className="text-sm">
+                By clicking checkout, you agree to the{" "}
+                <Link href="/agb">
+                  <a className="text-white">terms & conditions</a>
+                </Link>
+              </p>
             </>
           )}
         </form>
