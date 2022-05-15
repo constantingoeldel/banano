@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+a {
+  color: #18274e;
+  font-weight: bold;
+}
+a:hover {
+  color: #00aced;
+  text-decoration: underline;
+}
+
 h4 {
   font-size: 1.5rem;
   font-weight: bold;
@@ -43,4 +52,57 @@ input[type="checkbox"]:checked + label:before {
   border-radius: 50%;
   top: 12px;
   left: 12px;
+}
+
+h1 {
+  margin-bottom: 2.5rem;
+  font-size: 2.25rem /* 36px */;
+  line-height: 2.5rem /* 40px */;
+  letter-spacing: -0.025em;
+  font-weight: 800;
+}
+
+h2 {
+  margin-top: 1.25rem /* 20px */;
+  margin-bottom: 1.25rem /* 20px */;
+  font-size: 1.5rem /* 24px */;
+  line-height: 2rem /* 32px */;
+  font-weight: 800;
+}
+h3 {
+  margin-top: 1.25rem /* 20px */;
+  margin-bottom: 1.25rem /* 20px */;
+  font-size: 1.25rem /* 18px */;
+  line-height: 1.5rem /* 24px */;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 3.75rem /* 60px */;
+    line-height: 1;
+  }
+  h2 {
+    font-size: 1.875rem /* 30px */;
+    line-height: 2.25rem /* 36px */;
+  }
+  h3 {
+    font-size: 1.5rem /* 24px */;
+    line-height: 1.5rem /* 24px */;
+  }
+}
+
+@media (min-width: 640px) {
+  h1 {
+    font-size: 3rem /* 48px */;
+    line-height: 1;
+  }
+  h2 {
+    font-size: 1.5rem /* 24px */;
+    line-height: 2rem /* 32px */;
+  }
+  h3 {
+    font-size: 1.25rem /* 18px */;
+    line-height: 1.5rem /* 24px */;
+  }
 }

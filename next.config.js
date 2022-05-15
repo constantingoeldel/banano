@@ -1,3 +1,5 @@
+const withMarkdoc = require('@markdoc/next.js')
+
 module.exports = {
   webpack: (config) => {
     config.experiments.topLevelAwait = true,
@@ -8,3 +10,7 @@ module.exports = {
     outputStandalone: true,
   },
 }
+
+module.exports = withMarkdoc()({
+  pageExtensions: ['js', "ts", "tsx", 'md']
+})

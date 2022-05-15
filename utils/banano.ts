@@ -146,10 +146,13 @@ export async function getBalance(
   account: string,
   chain: "banano" | "nano" = "banano"
 ): Promise<number> {
-  return chain === "banano" ? await getBananoBalance(account) : await getNanoBalance(account);
+  const balance =
+    chain === "banano" ? await getBananoBalance(account) : await getNanoBalance(account);
+  return Number(balance);
 }
 
 export async function receivePending(seed: string, chain: string = "banano") {
+  console.log("Trying to receive pending", chain);
   try {
     chain === "banano" ? setBanano() : setNano();
     chain === "banano"

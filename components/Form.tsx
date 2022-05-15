@@ -267,6 +267,7 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
                 sitekey="6Lc80lofAAAAAPHm6vZA4AcKTuikKCfLYkSe7Ajc"
                 onChange={(token) => (token ? setCaptcha(token) : setCaptcha(null))}
               />
+              {/* Add agb */}
             </>
           )}
         </form>

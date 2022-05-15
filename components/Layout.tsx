@@ -57,13 +57,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <div className="mt-5 flex">
                       {/* <Link href="/">Purchase BAN</Link>
 
-          <Link href="/test">Test payment</Link> */}
+             <Link href="/test">Test payment</Link> */}
                       <Link href={"/source"}>
-                        <a className=" underline">Offer your own</a>
+                        <a className=" ">Offer your own</a>
                       </Link>
                       <div className="mr-5"></div>
                       <Link href={"/dashboard"}>
-                        <a className=" underline">To my dashboard</a>
+                        <a className=" ">To my dashboard</a>
                       </Link>
                       {/* <label className="hidden">Do you want to use USD or EUR?</label>
                       <select
@@ -110,7 +110,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <header className="flex flex-col items-center justify-center">
                       {/* <Link href="/">Purchase BAN</Link>
 
-          <Link href="/test">Test payment</Link> */}
+             <Link href="/test">Test payment</Link> */}
                       <Link href={"/source"}>Offer your own</Link>
                       <Link href={"/dashboard"}>To my dashboard</Link>
                       <div className="py-5"></div>
@@ -122,8 +122,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Popover.Panel>
             </Transition>
           </Popover>
-
-          {children}
+          <main className="text-lg text-dark mt-10 md:grid mx-auto max-w-4xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+            {children}
+          </main>
+          <footer className="mt-10 mx-auto max-w-4xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+            <Link href="/imprint">Imprint | </Link>
+            <Link href="/privacy">Privacy | </Link>
+            <Link href="/agb">Terms </Link>
+          </footer>
           <Script
             src="//code.tidio.co/zuigqjgj3hkww91lrmecg50kquvy0vjo.js"
             strategy="afterInteractive"

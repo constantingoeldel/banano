@@ -42,3 +42,4 @@ yarn.lock
 yarn-*.lock
 /cypress/screenshots
 /cypress/videos
+/letsencrypt
