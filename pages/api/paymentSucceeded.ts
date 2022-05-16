@@ -62,12 +62,12 @@ export default async function paymentSucceeded(paymentIntent: string) {
       console.log(error.message);
       db.addError(paymentIntent, error.message);
       db.updateStatus(paymentIntent, "invalid hash");
-      return error.message;
+      throw error;
     } else if (error instanceof TransactionError) {
       console.log(error.message);
       db.addError(paymentIntent, error.message);
       db.updateStatus(paymentIntent, "transaction error");
-      return error.message;
+      throw error;
     } else if (error instanceof TransferError) {
       console.log(error);
       db.addError(paymentIntent, error.message);
