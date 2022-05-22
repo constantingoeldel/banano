@@ -172,7 +172,9 @@ export default function Source() {
           </>
         )}
         <br />
+        <p>Registration is currently disabled due to legal ambiguity, sorry.</p>
         <button
+          disabled
           type="submit"
           className=" flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-dark bg-banano-600 hover:bg-banano-700 md:py-4 md:text-lg md:px-10"
         >
