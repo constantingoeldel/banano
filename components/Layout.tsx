@@ -58,9 +58,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       {/* <Link href="/">Purchase BAN</Link>
 
              <Link href="/test">Test payment</Link> */}
-                      <Link href={"/source"}>
+                      {/* <Link href={"/source"}>
                         <a className=" ">Offer your own</a>
-                      </Link>
+                      </Link> */}
                       <div className="mr-5"></div>
                       <Link href={"/dashboard"}>
                         <a className=" ">To my dashboard</a>
@@ -111,7 +111,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       {/* <Link href="/">Purchase BAN</Link>
 
              <Link href="/test">Test payment</Link> */}
-                      <Link href={"/source"}>Offer your own</Link>
+                      {/* <Link href={"/source"}>Offer your own</Link> */}
                       <Link href={"/dashboard"}>To my dashboard</Link>
                       <div className="py-5"></div>
                       <ChainToggle />
