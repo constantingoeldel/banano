@@ -31,7 +31,10 @@ export default function Form({ offers, exchangeRate_USD_EUR = 1 }: Props) {
 
   const validateStep = {
     0: () =>
-      address && (chain === "banano" ? address.match("ban_.{60}") : address.match("nano_.{60}")),
+      address &&
+      (chain === "banano"
+        ? address.match(/^ban_[A-Za-z0-9]{60}$/g)
+        : address.match(/^nano_[A-Za-z0-9]{60}$/g)),
     1: () => selectedOffer,
     2: () =>
       selectedOffer &&

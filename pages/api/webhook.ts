@@ -25,6 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 export async function handleWebhook(event: stripeJs.Event) {
+  let subscription;
+  let status;
   switch (event.type) {
     case "account.external_account.created":
       try {
@@ -59,6 +61,30 @@ export async function handleWebhook(event: stripeJs.Event) {
         sendMail(String(error));
         return 500;
       }
+    case "customer.subscription.deleted":
+      subscription = event.data.object;
+      status = subscription.status;
+      console.log(`Subscription status is ${status}.`);
+      // Then define and call a method to handle the subscription deleted.
+      // handleSubscriptionDeleted(subscriptionDeleted);
+      break;
+    case "customer.subscription.updated":
+      subscription = event.data.object;
+      status = subscription.status;
+      console.log(`Subscription status is ${status}.`);
+      // Then define and call a method to handle the subscription created.
+      // handleSubscriptionCreated(subscription);
+      break;
+    case "invoice.upcoming":
+      subscription = event.data.object;
+      status = subscription.status;
+      console.log(`Subscription status is ${status}.`);
+      // Then define and call a method to handle the subscription update.
+      // handleSubscriptionUpdated(subscription);
+      break;
+    case "invoice.paid":
+      subscription = event.data.object;
+      console.log("Subscription paid");
     default:
       console.log(`Unhandled event type ${event.type}`);
       return 200;

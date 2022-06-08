@@ -43,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       !recipient_address ||
       typeof recipient_address !== "string" ||
       (chain === "banano"
-        ? !recipient_address.match("ban_.{60}")
-        : !recipient_address.match("nano_.{60}"))
+        ? !recipient_address.match(/^ban_[A-Za-z0-9]{60}$/g)
+        : !recipient_address.match(/^nano_[A-Za-z0-9]{60}$/g))
     ) {
       res.status(400).json({
         message: "Invalid address. Please provide a valid " + chain.toUpperCase() + " address",

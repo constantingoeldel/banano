@@ -47,10 +47,21 @@ export class Database {
       .updateOne({ id }, { $set: { confirmed: true } });
   }
 
-  async createUser(address: string, sourceId?: string): Promise<User & { _id: ObjectId }> {
-    const user: User = { address, id: "uid_" + nanoid(), confirmed: false, sourceId };
+  async createUser(
+    id: string,
+    email: string,
+    name: string,
+    addresses: string[]
+  ): Promise<User & { _id: ObjectId }> {
+    const user: User = { id, addresses, name, email };
     const insertion = await this.client.db().collection<User>("users").insertOne(user);
     return { _id: insertion.insertedId, ...user };
+  }
+  async updateUser(id: string, patch: Partial<User>) {
+    const result = await this.client
+      .db()
+      .collection<User>("users")
+      .updateOne({ id }, { $set: patch });
   }
 
   async getOrders(): Promise<Order[]> {
@@ -74,11 +85,16 @@ export class Database {
     return failedOrders;
   }
 
-  async getUserOrders(address: string) {
+  async getUserAdresses(id: string) {
+    const user = await this.client.db().collection<User>("users").findOne({ id });
+    return user?.addresses || [];
+  }
+
+  async getAddressOrders(addresses: string[]) {
     return (await this.client
       .db()
       .collection<Order>("orders")
-      .find({ address: address })
+      .find({ address: { $in: addresses } })
       .toArray()) as WithId<Order>[];
   }
 

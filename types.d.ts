@@ -9,9 +9,21 @@ export type Status = {
 
 export interface User {
   id: string;
+  addresses: string[];
+  email: string;
+  name: string;
+  customerId?: string;
+  recurring?: Recurring;
+}
+
+export interface Recurring {
+  paymentIntent: string;
+  subscriptionId: string;
+  amount: number;
+  currency: "usd" | "eur";
+  frequency: "daily" | "weekly" | "monthly";
   address: string;
-  confirmed: boolean;
-  sourceId?: string;
+  active: boolean;
 }
 
 export interface Offer {
